@@ -1,5 +1,26 @@
 defmodule PPlusFireStore.Decoder do
-  @moduledoc false
+  @moduledoc """
+  Documentation for `PPlusFireStore.Decoder`.
+
+  This module is responsible for decoding the response from Google Firestore API.
+
+  ## Example
+
+      iex> PPlusFireStore.Decoder.decode(%GoogleApi.Firestore.V1.Model.Document{
+      ...>   name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
+      ...>   fields: %{
+      ...>     "author" => %GoogleApi.Firestore.V1.Model.Value{stringValue: "John Doe"}
+      ...>   },
+      ...>   createTime: ~U[2025-01-10 17:14:04.738331Z],
+      ...>   updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      ...> })
+      %PPlusFireStore.Model.Document{
+        path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
+        data: %{"author" => "Jhon Due"},
+        created_at: ~U[2025-01-10 17:14:04.738331Z],
+        updated_at: ~U[2025-01-10 17:14:04.738331Z]
+      }
+  """
   alias GoogleApi.Firestore.V1.Model.ArrayValue
   alias GoogleApi.Firestore.V1.Model.Document
   alias GoogleApi.Firestore.V1.Model.Empty
@@ -8,17 +29,17 @@ defmodule PPlusFireStore.Decoder do
   alias GoogleApi.Firestore.V1.Model.MapValue
   alias GoogleApi.Firestore.V1.Model.Value
 
+  # Internal models
+  alias PPlusFireStore.Model.Document, as: PPlusDocument
+  alias PPlusFireStore.Model.Page, as: PPlusPage
+
+  @spec decode(GoogleApi.Firestore.V1.Model.Document.t()) :: PPlusDocument.t() | PPlusPage.t(PPlusDocument.t()) | nil
   def decode(%Document{fields: nil} = document) do
-    %PPlusFireStore.Model.Document{
-      path: document.name,
-      data: %{},
-      created_at: document.createTime,
-      updated_at: document.updateTime
-    }
+    decode(struct(document, fields: %{}))
   end
 
   def decode(%Document{fields: fields, name: name, createTime: create_time}) do
-    %PPlusFireStore.Model.Document{
+    %PPlusDocument{
       path: name,
       data: Map.new(fields, fn {k, v} -> {k, decode_value(v)} end),
       created_at: create_time,
@@ -26,21 +47,16 @@ defmodule PPlusFireStore.Decoder do
     }
   end
 
-  def decode(%Empty{}), do: nil
-
-  def decode(%ListDocumentsResponse{documents: nil}) do
-    %{
-      data: [],
-      next_page_token: nil
-    }
-  end
+  def decode(%ListDocumentsResponse{documents: nil}), do: %PPlusPage{}
 
   def decode(%ListDocumentsResponse{documents: documents, nextPageToken: token}) do
-    %{
+    %PPlusPage{
       data: Enum.map(documents, &decode/1),
       next_page_token: token
     }
   end
+
+  def decode(%Empty{}), do: nil
 
   defp decode_value(%Value{stringValue: value}) when is_binary(value), do: value
   defp decode_value(%Value{referenceValue: value}) when is_binary(value), do: value
