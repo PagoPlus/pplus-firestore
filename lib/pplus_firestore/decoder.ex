@@ -33,7 +33,9 @@ defmodule PPlusFireStore.Decoder do
   alias PPlusFireStore.Model.Document, as: PPlusDocument
   alias PPlusFireStore.Model.Page, as: PPlusPage
 
-  @spec decode(GoogleApi.Firestore.V1.Model.Document.t()) :: PPlusDocument.t() | PPlusPage.t(PPlusDocument.t()) | nil
+  @spec decode(GoogleApi.Firestore.V1.Model.Document.t()) :: PPlusDocument.t()
+  @spec decode(GoogleApi.Firestore.V1.Model.ListDocumentsResponse.t()) :: PPlusPage.t(PPlusDocument.t())
+  @spec decode(GoogleApi.Firestore.V1.Model.Empty.t()) :: nil
   def decode(%Document{fields: nil} = document) do
     decode(struct(document, fields: %{}))
   end
