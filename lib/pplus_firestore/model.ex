@@ -15,7 +15,8 @@ defmodule PPlusFireStore.Model do
   defmodule Page do
     @moduledoc false
 
-    defstruct [:data, :next_page_token]
+    defstruct data: [],
+              next_page_token: nil
 
     @type t(t) :: %__MODULE__{
             data: [t],
