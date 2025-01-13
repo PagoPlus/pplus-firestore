@@ -78,7 +78,7 @@ defmodule MyApp.Application do
 end
 ```
 
-Você pode definir vários repositórios
+You can define multiple repositories
 
 ```elixir
 children = [
