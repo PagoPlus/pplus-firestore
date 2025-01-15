@@ -16,7 +16,7 @@ defmodule PPlusFireStore.Decoder do
       ...> })
       %PPlusFireStore.Model.Document{
         path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-        data: %{"author" => "Jhon Due"},
+        data: %{"author" => "John Doe"},
         created_at: ~U[2025-01-10 17:14:04.738331Z],
         updated_at: ~U[2025-01-10 17:14:04.738331Z]
       }
