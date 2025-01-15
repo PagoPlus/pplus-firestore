@@ -80,7 +80,9 @@ defmodule PPlusFireStore.Decoder do
     Enum.map(values, &decode_value/1)
   end
 
-  defp decode_value(%Value{geoPointValue: %LatLng{latitude: lat, longitude: lng}}), do: {lat, lng}
+  defp decode_value(%Value{geoPointValue: %LatLng{latitude: lat, longitude: lng}}) do
+    %{"latitude" => lat, "longitude" => lng}
+  end
 
   defp decode_value(%Value{mapValue: %MapValue{fields: nil}}), do: %{}
 
