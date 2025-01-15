@@ -173,11 +173,12 @@ defmodule PPlusFireStore.Repo do
       @project_id Keyword.fetch!(@config, :project_id)
       @database_id Keyword.get(@config, :database_id, "(default)")
       @base_path "projects/#{@project_id}/databases/#{@database_id}/documents"
+      @token_fetcher Keyword.get(@config, :token_fetcher, Goth)
 
       def config, do: @config
 
       def token do
-        with {:ok, %Goth.Token{token: token}} <- Goth.fetch(__MODULE__) do
+        with {:ok, %{token: token}} <- @token_fetcher.fetch(__MODULE__) do
           token
         end
       end
