@@ -211,6 +211,7 @@ defmodule PPlusFireStore.Repo do
         API.delete_document(token(), build_path(path), opts)
       end
 
+      # if path is already a full path, don't prepend the base path
       defp build_path(path) do
         if String.contains?(path, @base_path) do
           path
