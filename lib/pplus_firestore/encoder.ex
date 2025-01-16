@@ -1,5 +1,65 @@
 defmodule PPlusFireStore.Encoder do
-  @moduledoc false
+  @moduledoc """
+  Documentation for `PPlusFireStore.Encoder`.
+
+  The Google Firestore API expects a map in a complex format containing the data and their respective types.
+
+  The Encoder module is responsible for encoding the data to be sent.
+
+  Example:
+
+  ```elixir
+  iex> PPlusFireStore.Encoder.encode(%{"name" => "John Doe", "age" => 42})
+  %{
+    fields: %{
+      "name" => %{stringValue: "John Doe"},
+      "age" => %{integerValue: 42}
+    }
+  }
+  ```
+
+  There are also special types such as `DateTime`, `GeoPoint`, and `Reference`.
+
+  ```elixir
+  iex> PPlusFireStore.Encoder.encode(%{"name" => "John Doe", "age" => 42, "birth_data" => ~U[1998-06-02 09:30:01.023149Z]})
+  %{
+    fields: %{
+      "age" => %{integerValue: 42},
+      "birth_data" => %{timestampValue: %{seconds: 896779801, nanos: 23149000}},
+      "name" => %{stringValue: "John Doe"}
+    }
+  }
+  ```
+
+  ```elixir
+  iex> PPlusFireStore.Encoder.encode(%{"location" => {:geo, {5.96989, 31.19063}}})
+  %{
+    fields: %{
+      "location" => %{geoPointValue: %{latitude: 5.96989, longitude: 31.19063}}
+    }
+  }
+  ```
+
+  ```elixir
+  iex> PPlusFireStore.Encoder.encode(%{"location" => %{latitude: 5.96989, longitude: 31.19063}})
+  %{
+    fields: %{
+      "location" => %{geoPointValue: %{latitude: 5.96989, longitude: 31.19063}}
+    }
+  }
+  ```
+
+  ```elixir
+  iex> PPlusFireStore.Encoder.encode(%{"next" => {:ref, "projects/my-project/databases/(default)/documents/my-collection/my-document"}})
+  %{
+    fields: %{
+      "next" => %{referenceValue: "projects/my-project/databases/(default)/documents/my-collection/my-document"}
+    }
+  }
+  ```
+  """
+
+  @spec encode(data :: map()) :: map()
   def encode(data) do
     %{fields: Map.new(data, fn {k, v} -> {k, encode_value(v)} end)}
   end

@@ -1,7 +1,46 @@
 defmodule PPlusFireStore.Repo do
   @moduledoc """
   Documentation for `PPlusFireStore.Repo`.
+
+  PPlusFireStore.Repo is a simplified API to interact with Google Firestore.
+
+  Each repository refers to a specific project and database.
+
+  ## Usage
+
+      defmodule MyFireStoreRepo do
+        use PPlusFireStore.Repo, otp_app: :my_app
+      end
+
+  ## Configuration
+
+      config :my_app, MyFireStoreRepo,
+        project_id: "project-fake-123-xy-9zz",
+        private_key_id: "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+        private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBAFAKEPRIVATEKEYwTDSERHFwLqESDgLKFDWFLRHSDFo5LKJDFA\nAKDJFSLkfj3+4LKFJSDklsjfdlskJFLDSJKLFJSDFLJSDFLKJSDfljSDLJF\n-----END PRIVATE KEY-----\n",
+        client_email: "firebase-adminsdk-fake@project-fake-123-xy-9zz.iam.gserviceaccount.com",
+        client_id: "123456789012345678901",
+        auth_uri: "https://accounts.google.com/o/oauth2/auth",
+        token_uri: "https://oauth2.googleapis.com/token",
+        auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+        client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fake%40project-fake-123-xy-9zz.iam.gserviceaccount.com"
+        database_id: "(default)"
+
+  By default `database_id` is "(default)", so it is optional.
+
+  You can have a repository for each project and database you want to interact with.
+
+  ## Examples
+
+      defmodule MyFireStoreRepo do
+        use PPlusFireStore.Repo, otp_app: :my_app
+      end
+
+      defmodule MyOtherFireStoreRepo do
+        use PPlusFireStore.Repo, otp_app: :my_app
+      end
   """
+
   alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
 
