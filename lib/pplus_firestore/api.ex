@@ -1,7 +1,7 @@
 defmodule PPlusFireStore.API do
   @moduledoc false
   alias GoogleApi.Firestore.V1.Api.Projects
-  alias GoogleApi.Firestore.V1.Connection
+  alias PPlusFireStore.Connection
   alias PPlusFireStore.Decoder
   alias PPlusFireStore.Encoder
   alias PPlusFireStore.Model.Document
