@@ -17,7 +17,7 @@ defmodule PPlusFireStore.Repo do
       config :my_app, MyFireStoreRepo,
         project_id: "project-fake-123-xy-9zz",
         private_key_id: "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
-        private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBAFAKEPRIVATEKEYwTDSERHFwLqESDgLKFDWFLRHSDFo5LKJDFA\nAKDJFSLkfj3+4LKFJSDklsjfdlskJFLDSJKLFJSDFLJSDFLKJSDfljSDLJF\n-----END PRIVATE KEY-----\n",
+        private_key: "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBAFAKEPRIVATEKEYwTDSERHFwLqESDgLKFDWFLRHSDFo5LKJDFA\\nAKDJFSLkfj3+4LKFJSDklsjfdlskJFLDSJKLFJSDFLJSDFLKJSDfljSDLJF\\n-----END PRIVATE KEY-----\\n",
         client_email: "firebase-adminsdk-fake@project-fake-123-xy-9zz.iam.gserviceaccount.com",
         client_id: "123456789012345678901",
         auth_uri: "https://accounts.google.com/o/oauth2/auth",

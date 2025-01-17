@@ -143,6 +143,117 @@ defmodule PPlusFireStore.DecoderTest do
                updated_at: ~U[2025-01-10 17:14:04.738331Z]
              }
     end
+
+    test "decode document with byte field" do
+      document = %Document{
+        name: "projects/my_project/databases/(default)/documents/tracking/ByteField",
+        fields: %{
+          "byte_field" => %Value{bytesValue: <<1, 2, 3, 4>>}
+        },
+        createTime: ~U[2025-01-10 17:14:04.738331Z],
+        updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      }
+
+      assert Decoder.decode(document) == %PPlusFireStore.Model.Document{
+               data: %{
+                 "byte_field" => <<1, 2, 3, 4>>
+               },
+               path: "projects/my_project/databases/(default)/documents/tracking/ByteField",
+               created_at: ~U[2025-01-10 17:14:04.738331Z],
+               updated_at: ~U[2025-01-10 17:14:04.738331Z]
+             }
+    end
+
+    test "encode double value when value is a string" do
+      document = %Document{
+        name: "projects/my_project/databases/(default)/documents/tracking/DoubleAsString",
+        fields: %{
+          "double_field" => %Value{doubleValue: "3.14"}
+        },
+        createTime: ~U[2025-01-10 17:14:04.738331Z],
+        updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      }
+
+      assert Decoder.decode(document) == %PPlusFireStore.Model.Document{
+               data: %{
+                 "double_field" => 3.14
+               },
+               path: "projects/my_project/databases/(default)/documents/tracking/DoubleAsString",
+               created_at: ~U[2025-01-10 17:14:04.738331Z],
+               updated_at: ~U[2025-01-10 17:14:04.738331Z]
+             }
+    end
+
+    test "decode document with nil array field" do
+      document = %Document{
+        name: "projects/my_project/databases/(default)/documents/tracking/NilArrayField",
+        fields: %{
+          "array_field" => %Value{arrayValue: %ArrayValue{values: nil}}
+        },
+        createTime: ~U[2025-01-10 17:14:04.738331Z],
+        updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      }
+
+      assert Decoder.decode(document) == %PPlusFireStore.Model.Document{
+               data: %{
+                 "array_field" => []
+               },
+               path: "projects/my_project/databases/(default)/documents/tracking/NilArrayField",
+               created_at: ~U[2025-01-10 17:14:04.738331Z],
+               updated_at: ~U[2025-01-10 17:14:04.738331Z]
+             }
+    end
+
+    test "decode document with nil fields" do
+      document = %Document{
+        name: "projects/my_project/databases/(default)/documents/tracking/NilFields",
+        fields: nil,
+        createTime: ~U[2025-01-10 17:14:04.738331Z],
+        updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      }
+
+      assert Decoder.decode(document) == %PPlusFireStore.Model.Document{
+               data: %{},
+               path: "projects/my_project/databases/(default)/documents/tracking/NilFields",
+               created_at: ~U[2025-01-10 17:14:04.738331Z],
+               updated_at: ~U[2025-01-10 17:14:04.738331Z]
+             }
+    end
+
+    test "decode list of documents with nil documents" do
+      list_response = %ListDocumentsResponse{
+        documents: nil
+      }
+
+      assert Decoder.decode(list_response) == %Page{
+               data: [],
+               next_page_token: nil
+             }
+    end
+
+    test "decode document with map field having nil fields" do
+      document = %Document{
+        name: "projects/my_project/databases/(default)/documents/tracking/MapFieldWithNilFields",
+        fields: %{
+          "map_field" => %Value{
+            mapValue: %MapValue{
+              fields: nil
+            }
+          }
+        },
+        createTime: ~U[2025-01-10 17:14:04.738331Z],
+        updateTime: ~U[2025-01-10 17:14:04.738331Z]
+      }
+
+      assert Decoder.decode(document) == %PPlusFireStore.Model.Document{
+               data: %{
+                 "map_field" => %{}
+               },
+               path: "projects/my_project/databases/(default)/documents/tracking/MapFieldWithNilFields",
+               created_at: ~U[2025-01-10 17:14:04.738331Z],
+               updated_at: ~U[2025-01-10 17:14:04.738331Z]
+             }
+    end
   end
 
   describe "decode ListDocumentsResponse" do
