@@ -8,7 +8,15 @@ defmodule PPlusFireStore.MixProject do
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.cobertura": :test
+      ]
     ]
   end
 
@@ -33,6 +41,7 @@ defmodule PPlusFireStore.MixProject do
       {:goth, "~> 1.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.18.3", only: :test},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
