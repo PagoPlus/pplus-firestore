@@ -9,13 +9,15 @@ defmodule PPlusFireStore.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
+      aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.cobertura": :test
+        "coveralls.cobertura": :test,
+        ci: :test
       ]
     ]
   end
@@ -41,9 +43,21 @@ defmodule PPlusFireStore.MixProject do
       {:goth, "~> 1.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test},
       {:mock, "~> 0.3.9", only: :test},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      ci: [
+        "format --check-formatted",
+        "deps.unlock --check-unused",
+        "credo suggest --strict --all",
+        "coveralls"
+      ]
     ]
   end
 end
