@@ -25,7 +25,7 @@ defmodule PPlusFireStore.APITest do
                ],
                adapter: nil,
                fun: nil,
-               post: []
+               post: [[]]
              }
     end
   end
