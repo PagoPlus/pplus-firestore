@@ -208,8 +208,10 @@ defmodule PPlusFireStore.Repo do
       alias PPlusFireStore.API
       alias PPlusFireStore.Repo
 
-      @config Application.compile_env(opts[:otp_app], __MODULE__)
-      @project_id Keyword.fetch!(@config, :project_id)
+      @config Application.compile_env(opts[:otp_app], __MODULE__, [])
+      @project_id Keyword.get_lazy(@config, :project_id, fn ->
+                    raise ArgumentError, "`project_id` is not set in config file for #{__MODULE__}"
+                  end)
       @database_id Keyword.get(@config, :database_id, "(default)")
       @base_path "projects/#{@project_id}/databases/#{@database_id}/documents"
       @token_fetcher Keyword.get(@config, :token_fetcher, Goth)
