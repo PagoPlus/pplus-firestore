@@ -14,7 +14,7 @@ end
 
 ## Get firestore credentials
 
-After creating your project in Firestore, go to `Project Settings` > `Service Accounts` > `Generate New Private Key` or use the link https://console.firebase.google.com/u/0/project/{project_id}/settings/serviceaccounts/adminsdk
+After creating your project in Firestore, go to `Project Settings` > `Service Accounts` > `Generate New Private Key` or use the link https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
 
 You will receive something like this:
 
