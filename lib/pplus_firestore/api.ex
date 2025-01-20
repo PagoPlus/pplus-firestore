@@ -7,9 +7,6 @@ defmodule PPlusFireStore.API do
   alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
 
-  @spec connection(String.t()) :: Connection.t()
-  def connection(auth_token), do: Connection.new(auth_token)
-
   @doc """
   Create document
 
@@ -40,7 +37,7 @@ defmodule PPlusFireStore.API do
         ) :: {:ok, Document.t()} | {:error, any()}
   def create_document(auth_token, parent, collection, data, opts \\ []) do
     auth_token
-    |> connection()
+    |> Connection.new()
     |> Projects.firestore_projects_databases_documents_create_document(
       parent,
       collection,
@@ -74,7 +71,7 @@ defmodule PPlusFireStore.API do
         ) :: {:ok, Document.t()} | {:error, any()}
   def get_document(auth_token, path, opts \\ []) do
     auth_token
-    |> connection()
+    |> Connection.new()
     |> Projects.firestore_projects_databases_documents_get(path, opts)
     |> handle_response()
   end
@@ -111,7 +108,7 @@ defmodule PPlusFireStore.API do
         ) :: {:ok, Page.t(Document.t())} | {:error, any()}
   def list_documents(auth_token, parent, collection, opts \\ []) do
     auth_token
-    |> connection()
+    |> Connection.new()
     |> Projects.firestore_projects_databases_documents_list(parent, collection, opts)
     |> handle_response()
   end
@@ -144,7 +141,7 @@ defmodule PPlusFireStore.API do
         ) :: {:ok, Document.t()} | {:error, any()}
   def update_document(auth_token, path, data, opts \\ []) do
     auth_token
-    |> connection()
+    |> Connection.new()
     |> Projects.firestore_projects_databases_documents_patch(
       path,
       Keyword.put(opts, :body, Encoder.encode(data))
@@ -174,7 +171,7 @@ defmodule PPlusFireStore.API do
     document_exists = Keyword.get(opts, :"currentDocument.exists", true)
 
     auth_token
-    |> connection()
+    |> Connection.new()
     |> Projects.firestore_projects_databases_documents_delete(
       path,
       Keyword.put(opts, :"currentDocument.exists", document_exists)

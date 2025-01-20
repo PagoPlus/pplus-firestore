@@ -11,25 +11,6 @@ defmodule PPlusFireStore.APITest do
   alias PPlusFireStore.Model.Page
   alias Tesla.Middleware.Headers
 
-  describe "connection/1" do
-    test "returns a connection struct with token" do
-      token = "my-token"
-
-      assert API.connection(token) == %Tesla.Client{
-               pre: [
-                 {
-                   Headers,
-                   :call,
-                   [[{"authorization", "Bearer #{token}"}]]
-                 }
-               ],
-               adapter: nil,
-               fun: nil,
-               post: []
-             }
-    end
-  end
-
   describe "create_document/4" do
     test "creates a document returns decoded document" do
       auth_token = "my-token"
