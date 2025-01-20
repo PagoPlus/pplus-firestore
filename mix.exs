@@ -42,6 +42,7 @@ defmodule PPlusFireStore.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test},
+      {:mock, "~> 0.3.9", only: :test},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
