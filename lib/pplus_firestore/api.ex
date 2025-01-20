@@ -171,9 +171,14 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) :: {:ok, :deleted} | {:error, any()}
   def delete_document(auth_token, path, opts \\ []) do
+    document_exists = Keyword.get(opts, :"currentDocument.exists", true)
+
     auth_token
     |> connection()
-    |> Projects.firestore_projects_databases_documents_delete(path, opts)
+    |> Projects.firestore_projects_databases_documents_delete(
+      path,
+      Keyword.put(opts, :"currentDocument.exists", document_exists)
+    )
     |> handle_response()
     |> case do
       {:ok, nil} -> {:ok, :deleted}
