@@ -1,4 +1,4 @@
-<div style="display: flex ;align-items: center;">
+<div style="display: flex; flex-direction: row; align-items: center;">
   <img width="40" height="56" src="priv/images/logo.svg#gh-light-mode-only" alt="PPlusFireStore">
   <img width="40" height="56" src="priv/images/logo-white.svg#gh-dark-mode-only" alt="PPlusFireStore">
   <h1 style="margin-left: 15px;">PPlusFireStore</h1>
