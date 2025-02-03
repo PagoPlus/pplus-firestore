@@ -306,4 +306,4 @@ MyApp.MyFireStoreRepo.delete_document("addresses/DxN4EvMyWCh7oTfVmxP9", ["curren
 
 ## License
 
-**TODO: Add license**
+[MIT License](LICENSE)
