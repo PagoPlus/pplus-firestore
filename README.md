@@ -1,4 +1,10 @@
-# PPlusFireStore
+<div style="display: flex ;align-items: center;">
+  <img width="40" height="56" src="priv/images/logo.svg#gh-light-mode-only" alt="PPlusFireStore">
+  <img width="40" height="56" src="priv/images/logo-white.svg#gh-dark-mode-only" alt="PPlusFireStore">
+  <h1 style="margin-left: 15px;">PPlusFireStore</h1>
+</div>
+
+---
 
 Provides a simple interface to interact with the official Google API [GoogleApi.Firestore](https://github.com/googleapis/elixir-google-api/tree/master/clients/firestore). It also automatically manages access tokens for Google Firestore.
 
