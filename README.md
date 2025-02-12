@@ -1,7 +1,6 @@
 <div style="display: flex; flex-direction: row; align-items: center;">
-  <img width="40" height="56" src="priv/images/logo.svg#gh-light-mode-only" alt="PPlusFireStore">
-  <img width="40" height="56" src="priv/images/logo-white.svg#gh-dark-mode-only" alt="PPlusFireStore">
-  <h1 style="margin-left: 15px;">PPlusFireStore</h1>
+  <img width="400" src="priv/images/pplus_firestore_light_mode.svg#gh-light-mode-only" alt="PPlusFireStore">
+  <img width="400" src="priv/images/pplus_firestore_dark_mode.svg#gh-dark-mode-only" alt="PPlusFireStore">
 </div>
 
 ---
