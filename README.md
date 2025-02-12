@@ -1,7 +1,5 @@
-<div style="display: flex; flex-direction: row; align-items: center;">
-  <img width="400" src="priv/images/pplus_firestore_light_mode.svg#gh-light-mode-only" alt="PPlusFireStore">
-  <img width="400" src="priv/images/pplus_firestore_dark_mode.svg#gh-dark-mode-only" alt="PPlusFireStore">
-</div>
+<img width="400" src="priv/images/pplus_firestore_light_mode.svg#gh-light-mode-only" alt="PPlusFireStore">
+<img width="400" src="priv/images/pplus_firestore_dark_mode.svg#gh-dark-mode-only" alt="PPlusFireStore">
 
 ---
 
