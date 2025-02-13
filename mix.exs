@@ -42,7 +42,7 @@ defmodule PPlusFireStore.MixProject do
       {:google_api_firestore, "~> 0.32"},
       {:goth, "~> 1.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.3.3", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test},
       {:mock, "~> 0.3.9", only: :test},
