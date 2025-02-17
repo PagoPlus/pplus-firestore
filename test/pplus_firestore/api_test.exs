@@ -4,11 +4,13 @@ defmodule PPlusFireStore.APITest do
   import Mock
 
   alias GoogleApi.Firestore.V1.Api.Projects
+  alias GoogleApi.Firestore.V1.Connection
   alias GoogleApi.Firestore.V1.Model.Empty
   alias GoogleApi.Firestore.V1.Model.ListDocumentsResponse
   alias GoogleApi.Firestore.V1.Model.Value
   alias PPlusFireStore.API
   alias PPlusFireStore.Model.Page
+  alias Tesla.Adapter.Httpc
   alias Tesla.Middleware.Headers
 
   describe "create_document/4" do
@@ -65,10 +67,11 @@ defmodule PPlusFireStore.APITest do
         url: "https://firestore.googleapis.com/v1/#{parent}/#{collection}",
         query: [documentId: ""],
         headers: [{"content-type", "application/json"}],
-        body: "{\n  \"error\": {\n    \"code\": 409,\n    \"message\": \"Document already exists: #{parent}/#{collection}/#{document_id}\",\n    \"status\": \"ALREADY_EXISTS\"\n  }\n}\n",
+        body:
+          "{\n  \"error\": {\n    \"code\": 409,\n    \"message\": \"Document already exists: #{parent}/#{collection}/#{document_id}\",\n    \"status\": \"ALREADY_EXISTS\"\n  }\n}\n",
         status: 409,
         opts: [],
-        __module__: GoogleApi.Firestore.V1.Connection,
+        __module__: Connection,
         __client__: %Tesla.Client{
           fun: nil,
           pre: [
@@ -80,7 +83,7 @@ defmodule PPlusFireStore.APITest do
              ]}
           ],
           post: [],
-          adapter: {Tesla.Adapter.Httpc, :call, [[]]}
+          adapter: {Httpc, :call, [[]]}
         }
       }
 
@@ -99,10 +102,10 @@ defmodule PPlusFireStore.APITest do
           ^collection,
           [body: %{fields: %{"author" => %{stringValue: "John Doe"}}}, documentId: ^document_id] ->
             {:error, tesla_env}
-
         end
       ) do
-        assert API.create_document(auth_token, parent, collection, data, [documentId: document_id]) == {:error, :conflict, tesla_env}
+        assert API.create_document(auth_token, parent, collection, data, documentId: document_id) ==
+                 {:error, :conflict, tesla_env}
       end
     end
   end
@@ -323,40 +326,40 @@ defmodule PPlusFireStore.APITest do
       path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
 
       tesla_env =
-         %Tesla.Env{
-           method: :delete,
-           url: "https://firestore.googleapis.com/v1/#{path}",
-           query: ["currentDocument.exists": true],
-           headers: [
-             {"date", "Mon, 20 Jan 2025 13:11:21 GMT"},
-             {"server", "ESF"},
-             {"vary", "Origin"},
-             {"content-type", "application/json; charset=UTF-8"},
-             {"x-debug-tracking-id", "7981810200057583707;o=1"},
-             {"x-xss-protection", "0"},
-             {"x-frame-options", "SAMEORIGIN"},
-             {"x-content-type-options", "nosniff"},
-             {"alt-svc", ~s(h3=":443"; ma=2592000,h3-29=":443"; ma=2592000)}
-           ],
-           body:
-             "{\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"No document to update: #{path},\n    \"status\": \"NOT_FOUND\"\n  }\n}\n",
-           status: 404,
-           opts: [],
-           __module__: GoogleApi.Firestore.V1.Connection,
-           __client__: %Tesla.Client{
-             fun: nil,
-             pre: [
-               {Tesla.Middleware.Headers, :call,
-                [
-                  [
-                    {"authorization", "Bearer #{auth_token}"}
-                  ]
-                ]}
-             ],
-             post: [],
-             adapter: {Tesla.Adapter.Httpc, :call, [[]]}
-           }
-         }
+        %Tesla.Env{
+          method: :delete,
+          url: "https://firestore.googleapis.com/v1/#{path}",
+          query: ["currentDocument.exists": true],
+          headers: [
+            {"date", "Mon, 20 Jan 2025 13:11:21 GMT"},
+            {"server", "ESF"},
+            {"vary", "Origin"},
+            {"content-type", "application/json; charset=UTF-8"},
+            {"x-debug-tracking-id", "7981810200057583707;o=1"},
+            {"x-xss-protection", "0"},
+            {"x-frame-options", "SAMEORIGIN"},
+            {"x-content-type-options", "nosniff"},
+            {"alt-svc", ~s(h3=":443"; ma=2592000,h3-29=":443"; ma=2592000)}
+          ],
+          body:
+            "{\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"No document to update: #{path},\n    \"status\": \"NOT_FOUND\"\n  }\n}\n",
+          status: 404,
+          opts: [],
+          __module__: Connection,
+          __client__: %Tesla.Client{
+            fun: nil,
+            pre: [
+              {Tesla.Middleware.Headers, :call,
+               [
+                 [
+                   {"authorization", "Bearer #{auth_token}"}
+                 ]
+               ]}
+            ],
+            post: [],
+            adapter: {Httpc, :call, [[]]}
+          }
+        }
 
       with_mock(Projects,
         firestore_projects_databases_documents_delete: fn
