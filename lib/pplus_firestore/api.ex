@@ -1,5 +1,7 @@
 defmodule PPlusFireStore.API do
-  @moduledoc false
+  @moduledoc """
+  Module to interact with Google Firestore API
+  """
   alias GoogleApi.Firestore.V1.Api.Projects
   alias PPlusFireStore.Connection
   alias PPlusFireStore.Decoder
@@ -27,6 +29,8 @@ defmodule PPlusFireStore.API do
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
+
+    Note: One of the optional parameters is `documentId`, which is the id of the document to be created. If not provided, Firestore will generate an id automatically. It is important to pass the document id if you want to control the creation of duplicate documents.
   """
   @spec create_document(
           auth_token :: String.t(),
@@ -34,15 +38,18 @@ defmodule PPlusFireStore.API do
           collection :: String.t(),
           data :: map(),
           opts :: Keyword.t()
-        ) :: {:ok, Document.t()} | {:error, any()}
+        ) ::
+          {:ok, Document.t()}
+          | {:error, :conflict, Tesla.Env.t()}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+
   def create_document(auth_token, parent, collection, data, opts \\ []) do
+    opts = Keyword.put(opts, :body, Encoder.encode(data))
+
     auth_token
     |> Connection.new()
-    |> Projects.firestore_projects_databases_documents_create_document(
-      parent,
-      collection,
-      Keyword.put(opts, :body, Encoder.encode(data))
-    )
+    |> Projects.firestore_projects_databases_documents_create_document(parent, collection, opts)
     |> handle_response()
   end
 
@@ -68,7 +75,12 @@ defmodule PPlusFireStore.API do
           auth_token :: String.t(),
           path :: String.t(),
           opts :: Keyword.t()
-        ) :: {:ok, Document.t()} | {:error, any()}
+        ) ::
+          {:ok, Document.t()}
+          | {:error, :not_found, Tesla.Env.t()}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+
   def get_document(auth_token, path, opts \\ []) do
     auth_token
     |> Connection.new()
@@ -105,7 +117,11 @@ defmodule PPlusFireStore.API do
           parent :: String.t(),
           collection :: String.t(),
           opts :: Keyword.t()
-        ) :: {:ok, Page.t(Document.t())} | {:error, any()}
+        ) ::
+          {:ok, Page.t(Document.t())}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+
   def list_documents(auth_token, parent, collection, opts \\ []) do
     auth_token
     |> Connection.new()
@@ -138,14 +154,17 @@ defmodule PPlusFireStore.API do
           path :: String.t(),
           data :: map(),
           opts :: Keyword.t()
-        ) :: {:ok, Document.t()} | {:error, any()}
+        ) ::
+          {:ok, Document.t()}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+
   def update_document(auth_token, path, data, opts \\ []) do
+    opts = Keyword.put(opts, :body, Encoder.encode(data))
+
     auth_token
     |> Connection.new()
-    |> Projects.firestore_projects_databases_documents_patch(
-      path,
-      Keyword.put(opts, :body, Encoder.encode(data))
-    )
+    |> Projects.firestore_projects_databases_documents_patch(path, opts)
     |> handle_response()
   end
 
@@ -166,24 +185,31 @@ defmodule PPlusFireStore.API do
           auth_token :: String.t(),
           path :: String.t(),
           opts :: Keyword.t()
-        ) :: {:ok, :deleted} | {:error, any()}
+        ) ::
+          :ok
+          | {:error, :not_found, Tesla.Env.t()}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+
   def delete_document(auth_token, path, opts \\ []) do
     document_exists = Keyword.get(opts, :"currentDocument.exists", true)
+    opts = Keyword.put(opts, :"currentDocument.exists", document_exists)
 
-    auth_token
-    |> Connection.new()
-    |> Projects.firestore_projects_databases_documents_delete(
-      path,
-      Keyword.put(opts, :"currentDocument.exists", document_exists)
-    )
-    |> handle_response()
-    |> case do
-      {:ok, nil} -> {:ok, :deleted}
-      response -> response
+    response =
+      auth_token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_delete(path, opts)
+      |> handle_response()
+
+    case response do
+      {:ok, nil} -> :ok
+      _ -> response
     end
   end
 
   defp handle_response({:ok, response}), do: {:ok, Decoder.decode(response)}
 
+  defp handle_response({:error, %Tesla.Env{status: 404} = reason}), do: {:error, :not_found, reason}
+  defp handle_response({:error, %Tesla.Env{status: 409} = reason}), do: {:error, :conflict, reason}
   defp handle_response({:error, reason}), do: {:error, reason}
 end

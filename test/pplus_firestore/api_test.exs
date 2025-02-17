@@ -52,6 +52,59 @@ defmodule PPlusFireStore.APITest do
                }
       end
     end
+
+    test "returns error if document already exists" do
+      auth_token = "my-token"
+      parent = "projects/my_project/databases/(default)/documents"
+      collection = "books"
+      document_id = "esgXQM7pqNCwQwYRJeBJ"
+      data = %{"author" => "John Doe"}
+
+      tesla_env = %Tesla.Env{
+        method: :post,
+        url: "https://firestore.googleapis.com/v1/#{parent}/#{collection}",
+        query: [documentId: ""],
+        headers: [{"content-type", "application/json"}],
+        body: "{\n  \"error\": {\n    \"code\": 409,\n    \"message\": \"Document already exists: #{parent}/#{collection}/#{document_id}\",\n    \"status\": \"ALREADY_EXISTS\"\n  }\n}\n",
+        status: 409,
+        opts: [],
+        __module__: GoogleApi.Firestore.V1.Connection,
+        __client__: %Tesla.Client{
+          fun: nil,
+          pre: [
+            {Tesla.Middleware.Headers, :call,
+             [
+               [
+                 {"authorization", "Bearer #{auth_token}"}
+               ]
+             ]}
+          ],
+          post: [],
+          adapter: {Tesla.Adapter.Httpc, :call, [[]]}
+        }
+      }
+
+      with_mock(Projects,
+        firestore_projects_databases_documents_create_document: fn
+          %Tesla.Client{
+            pre: [
+              {
+                Headers,
+                :call,
+                [[{"authorization", "Bearer " <> ^auth_token}]]
+              }
+            ]
+          },
+          ^parent,
+          ^collection,
+          [body: %{fields: %{"author" => %{stringValue: "John Doe"}}}, documentId: ^document_id] ->
+            {:error, tesla_env}
+
+        end
+      ) do
+        assert API.create_document(auth_token, parent, collection, data, [documentId: document_id]) == {:error, :conflict, tesla_env}
+      end
+    end
   end
 
   describe "get_document/2" do
@@ -261,7 +314,7 @@ defmodule PPlusFireStore.APITest do
             {:ok, %Empty{}}
         end
       ) do
-        assert API.delete_document(auth_token, path) == {:ok, :deleted}
+        assert API.delete_document(auth_token, path) == :ok
       end
     end
 
@@ -269,8 +322,7 @@ defmodule PPlusFireStore.APITest do
       auth_token = "my-token"
       path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
 
-      response =
-        {:error,
+      tesla_env =
          %Tesla.Env{
            method: :delete,
            url: "https://firestore.googleapis.com/v1/#{path}",
@@ -304,7 +356,7 @@ defmodule PPlusFireStore.APITest do
              post: [],
              adapter: {Tesla.Adapter.Httpc, :call, [[]]}
            }
-         }}
+         }
 
       with_mock(Projects,
         firestore_projects_databases_documents_delete: fn
@@ -319,10 +371,10 @@ defmodule PPlusFireStore.APITest do
           },
           ^path,
           ["currentDocument.exists": true] ->
-            response
+            {:error, tesla_env}
         end
       ) do
-        assert API.delete_document(auth_token, path) == response
+        assert API.delete_document(auth_token, path) == {:error, :not_found, tesla_env}
       end
     end
   end
