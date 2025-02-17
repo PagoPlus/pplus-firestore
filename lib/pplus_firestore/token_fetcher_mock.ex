@@ -1,5 +1,7 @@
 defmodule PPlusFireStore.TokenFetcherMock do
-  @moduledoc false
+  @moduledoc """
+  Mock module to fetch auth token in tests
+  """
   use PPlusFireStore.TokenFetcher
 
   def start_link(_opts) do
