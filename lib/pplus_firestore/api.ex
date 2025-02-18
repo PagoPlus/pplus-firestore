@@ -9,6 +9,8 @@ defmodule PPlusFireStore.API do
   alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
 
+  @type error_code :: :not_found | :unauthorized | :conflict
+
   @doc """
   Create document
 
@@ -40,8 +42,7 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) ::
           {:ok, Document.t()}
-          | {:error, :conflict, Tesla.Env.t()}
-          | {:error, Tesla.Env.t()}
+          | {:error, error_code(), Tesla.Env.t()}
           | {:error, any()}
 
   def create_document(auth_token, parent, collection, data, opts \\ []) do
@@ -77,8 +78,7 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) ::
           {:ok, Document.t()}
-          | {:error, :not_found, Tesla.Env.t()}
-          | {:error, Tesla.Env.t()}
+          | {:error, error_code(), Tesla.Env.t()}
           | {:error, any()}
 
   def get_document(auth_token, path, opts \\ []) do
@@ -119,7 +119,7 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) ::
           {:ok, Page.t(Document.t())}
-          | {:error, Tesla.Env.t()}
+          | {:error, error_code(), Tesla.Env.t()}
           | {:error, any()}
 
   def list_documents(auth_token, parent, collection, opts \\ []) do
@@ -156,7 +156,7 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) ::
           {:ok, Document.t()}
-          | {:error, Tesla.Env.t()}
+          | {:error, error_code(), Tesla.Env.t()}
           | {:error, any()}
 
   def update_document(auth_token, path, data, opts \\ []) do
@@ -187,8 +187,7 @@ defmodule PPlusFireStore.API do
           opts :: Keyword.t()
         ) ::
           :ok
-          | {:error, :not_found, Tesla.Env.t()}
-          | {:error, Tesla.Env.t()}
+          | {:error, error_code(), Tesla.Env.t()}
           | {:error, any()}
 
   def delete_document(auth_token, path, opts \\ []) do
@@ -209,7 +208,8 @@ defmodule PPlusFireStore.API do
 
   defp handle_response({:ok, response}), do: {:ok, Decoder.decode(response)}
 
-  defp handle_response({:error, %Tesla.Env{status: 404} = reason}), do: {:error, :not_found, reason}
-  defp handle_response({:error, %Tesla.Env{status: 409} = reason}), do: {:error, :conflict, reason}
+  defp handle_response({:error, %Tesla.Env{status: 401} = details}), do: {:error, :unauthorized, details}
+  defp handle_response({:error, %Tesla.Env{status: 404} = details}), do: {:error, :not_found, details}
+  defp handle_response({:error, %Tesla.Env{status: 409} = details}), do: {:error, :conflict, details}
   defp handle_response({:error, reason}), do: {:error, reason}
 end
