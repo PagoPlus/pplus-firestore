@@ -9,7 +9,7 @@ defmodule PPlusFireStore.API do
   alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
 
-  @type error_code :: :not_found | :unauthorized | :conflict
+  @type error_code :: :not_found | :already_exists
 
   @doc """
   Create document
@@ -208,8 +208,7 @@ defmodule PPlusFireStore.API do
 
   defp handle_response({:ok, response}), do: {:ok, Decoder.decode(response)}
 
-  defp handle_response({:error, %Tesla.Env{status: 401} = details}), do: {:error, :unauthorized, details}
   defp handle_response({:error, %Tesla.Env{status: 404} = details}), do: {:error, :not_found, details}
-  defp handle_response({:error, %Tesla.Env{status: 409} = details}), do: {:error, :conflict, details}
+  defp handle_response({:error, %Tesla.Env{status: 409} = details}), do: {:error, :already_exists, details}
   defp handle_response({:error, reason}), do: {:error, reason}
 end
