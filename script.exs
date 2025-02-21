@@ -4,10 +4,9 @@ alias GoogleApi.Firestore.V1.Api.Projects
 alias GoogleApi.Firestore.V1.Connection
 alias GoogleApi.Firestore.V1.Model.Document
 alias GoogleApi.Firestore.V1.Model.ListDocumentsResponse
-alias GoogleApi.Firestore.V1.Model.RunQueryRequest
-alias PPlusFireStore.Decoder
 alias PPlusFireStore.Encoder
 alias PPlusFireStore.TokenFetcherMock
+alias PPlusFireStore.API
 
 # Configure Firestore connection
 Application.put_env(:google_api_firestore, :base_url, "http://localhost:8200")
@@ -29,18 +28,7 @@ create_test_data = fn test_data ->
 end
 
 execute_query = fn query ->
-  response =
-    Projects.firestore_projects_databases_documents_run_query(client, parent,
-      body: %RunQueryRequest{structuredQuery: query}
-    )
-
-  case response do
-    {:ok, result} ->
-      Enum.map(result, fn %{document: document} -> Decoder.decode(document) end)
-
-    {:error, error} ->
-      IO.inspect(error)
-  end
+  API.run_query(token, parent, query)
 end
 
 clear_all_data = fn ->

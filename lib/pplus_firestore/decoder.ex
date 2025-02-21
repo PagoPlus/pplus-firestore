@@ -21,6 +21,7 @@ defmodule PPlusFireStore.Decoder do
         updated_at: ~U[2025-01-10 17:14:04.738331Z]
       }
   """
+  alias GoogleApi.Firestore.V1.Model.RunQueryResponse
   alias GoogleApi.Firestore.V1.Model.ArrayValue
   alias GoogleApi.Firestore.V1.Model.Document
   alias GoogleApi.Firestore.V1.Model.Empty
@@ -35,6 +36,7 @@ defmodule PPlusFireStore.Decoder do
 
   @spec decode(GoogleApi.Firestore.V1.Model.Document.t()) :: PPlusDocument.t()
   @spec decode(GoogleApi.Firestore.V1.Model.ListDocumentsResponse.t()) :: PPlusPage.t(PPlusDocument.t())
+  @spec decode(GoogleApi.Firestore.V1.Model.RunQueryResponse.t()) :: PPlusPage.t(PPlusDocument.t())
   @spec decode(GoogleApi.Firestore.V1.Model.Empty.t()) :: nil
   def decode(%Document{fields: nil} = document) do
     decode(struct(document, fields: %{}))
@@ -57,6 +59,8 @@ defmodule PPlusFireStore.Decoder do
       next_page_token: token
     }
   end
+
+  def decode(%RunQueryResponse{document: %Document{} = document}), do: decode(document)
 
   def decode(%Empty{}), do: nil
 

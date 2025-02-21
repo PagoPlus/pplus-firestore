@@ -5,6 +5,13 @@ defmodule PPlusFireStore.Query do
   ## Example
 
   ```elixir
+  query =
+    from("books")
+    |> where("author" == "John Doe")
+    |> order_by("author", :asc)
+    |> limit(5)
+    |> offset(10)
+  ```
   """
 
   alias GoogleApi.Firestore.V1.Model.CollectionSelector
