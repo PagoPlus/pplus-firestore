@@ -60,9 +60,11 @@ defmodule PPlusFireStore.Encoder do
   """
 
   @spec encode(data :: map()) :: map()
-  def encode(data) do
+  def encode(data) when is_map(data) do
     %{fields: Map.new(data, fn {k, v} -> {k, encode_value(v)} end)}
   end
+
+  def encode(value), do: encode_value(value)
 
   def encode_value(nil), do: %{nullValue: nil}
   def encode_value({:bytes, value}), do: %{bytesValue: value}
