@@ -19,7 +19,7 @@ jobs:
     services:
       firestore:
         image: 178inaba/firestore-emulator
-        environment:
+        env:
           - FIRESTORE_PROJECT_ID=my-project
         ports:
           - 8200:8080
