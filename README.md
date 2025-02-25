@@ -316,13 +316,11 @@ MyApp.MyFireStoreRepo.delete_document("addresses/DxN4EvMyWCh7oTfVmxP9", ["curren
 - Docker
 - Docker Compose
 
-### Downloading and Installing dependencies
+### Steps
 
-```bash
-git clone https://github.com/178inaba/pplus_firestore.git
-cd pplus_firestore
-mix deps.get
-```
+1. Fork the project
+2. Create a feature branch
+3. Create a pull request
 
 ### Tests
 
@@ -342,6 +340,28 @@ Run Coverage, checks and tests:
 
 ```bash
 mix ci
+```
+
+### Publishing
+
+Pull requests format
+
+Feature
+
+```bash
+git checkout -b feature/feature-name
+```
+
+fix
+
+```bash
+git checkout -b fix/bugfix-name
+```
+
+Commit
+
+```bash
+git commit -am "feat: commit message"
 ```
 
 ## License
