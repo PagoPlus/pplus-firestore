@@ -309,12 +309,27 @@ MyApp.MyFireStoreRepo.delete_document("addresses/DxN4EvMyWCh7oTfVmxP9", ["curren
 
 ## Contributing
 
+### Requirements
+
+- Elixir 1.18+
+- Erlang 27+
+- Docker
+- Docker Compose
+
+### Downloading and Installing dependencies
+
+```bash
+git clone https://github.com/178inaba/pplus_firestore.git
+cd pplus_firestore
+mix deps.get
+```
+
 ### Tests
 
 Run the firestore emulator container:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Run tests:
