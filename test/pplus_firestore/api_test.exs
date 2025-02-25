@@ -1,384 +1,230 @@
 defmodule PPlusFireStore.APITest do
   use ExUnit.Case
 
-  import Mock
-
   alias GoogleApi.Firestore.V1.Api.Projects
-  alias GoogleApi.Firestore.V1.Connection
-  alias GoogleApi.Firestore.V1.Model.Empty
-  alias GoogleApi.Firestore.V1.Model.ListDocumentsResponse
-  alias GoogleApi.Firestore.V1.Model.Value
   alias PPlusFireStore.API
+  alias PPlusFireStore.Connection
+  alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
-  alias Tesla.Adapter.Httpc
-  alias Tesla.Middleware.Headers
+  alias PPlusFireStore.TokenFetcherMock
+
+  @parent "projects/my-project/databases/(default)/documents"
+  @collection "books"
+
+  setup do
+    Application.put_env(:google_api_firestore, :base_url, "http://localhost:8200")
+
+    {:ok, %{token: token}} = TokenFetcherMock.fetch(__MODULE__)
+
+    clear_database(token)
+
+    {:ok, token: token}
+  end
 
   describe "create_document/4" do
-    test "creates a document returns decoded document" do
-      auth_token = "my-token"
-      parent = "projects/my_project/databases/(default)/documents"
-      collection = "books"
+    test "creates a document returns decoded document", %{token: token} do
       data = %{"author" => "John Doe"}
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_create_document: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^parent,
-          ^collection,
-          [body: %{fields: %{"author" => %{stringValue: "John Doe"}}}] ->
-            {:ok,
-             %GoogleApi.Firestore.V1.Model.Document{
-               name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-               fields: %{"author" => %Value{stringValue: "John Doe"}},
-               createTime: ~U[2025-01-10 17:14:04.738331Z],
-               updateTime: ~U[2025-01-10 17:14:04.738331Z]
-             }}
-        end
-      ) do
-        assert API.create_document(auth_token, parent, collection, data) == {
-                 :ok,
-                 %PPlusFireStore.Model.Document{
-                   created_at: ~U[2025-01-10 17:14:04.738331Z],
-                   data: %{"author" => "John Doe"},
-                   path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                   updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                 }
+      assert {
+               :ok,
+               %Document{
+                 created_at: %DateTime{},
+                 data: %{"author" => "John Doe"},
+                 path: <<@parent, "/", @collection, "/", _document_id::binary>>,
+                 updated_at: %DateTime{}
                }
-      end
+             } = API.create_document(token, @parent, @collection, data)
     end
 
     test "returns error if document already exists" do
-      auth_token = "my-token"
-      parent = "projects/my_project/databases/(default)/documents"
-      collection = "books"
+      {:ok, %{token: token}} = TokenFetcherMock.fetch(__MODULE__)
       document_id = "esgXQM7pqNCwQwYRJeBJ"
       data = %{"author" => "John Doe"}
 
-      tesla_env = %Tesla.Env{
-        method: :post,
-        url: "https://firestore.googleapis.com/v1/#{parent}/#{collection}",
-        query: [documentId: ""],
-        headers: [{"content-type", "application/json"}],
-        body:
-          "{\n  \"error\": {\n    \"code\": 409,\n    \"message\": \"Document already exists: #{parent}/#{collection}/#{document_id}\",\n    \"status\": \"ALREADY_EXISTS\"\n  }\n}\n",
-        status: 409,
-        opts: [],
-        __module__: Connection,
-        __client__: %Tesla.Client{
-          fun: nil,
-          pre: [
-            {Tesla.Middleware.Headers, :call,
-             [
-               [
-                 {"authorization", "Bearer #{auth_token}"}
-               ]
-             ]}
-          ],
-          post: [],
-          adapter: {Httpc, :call, [[]]}
-        }
-      }
+      assert {:ok, _} = API.create_document(token, @parent, @collection, data, documentId: document_id)
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_create_document: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^parent,
-          ^collection,
-          [body: %{fields: %{"author" => %{stringValue: "John Doe"}}}, documentId: ^document_id] ->
-            {:error, tesla_env}
-        end
-      ) do
-        assert API.create_document(auth_token, parent, collection, data, documentId: document_id) ==
-                 {:error, :conflict, tesla_env}
-      end
+      assert {:error, :already_exists, %Tesla.Env{status: 409}} =
+               API.create_document(token, @parent, @collection, data, documentId: document_id)
+    end
+
+    test "return error when token is invalid" do
+      token = "invalid-token"
+
+      data = %{"author" => "John Doe"}
+
+      assert {:error, %Tesla.Env{status: 400}} = API.create_document(token, @parent, @collection, data)
+    end
+
+    test "returns error when unable to establish connection", %{token: token} do
+      Application.put_env(:google_api_firestore, :base_url, "http://localhost:0000")
+      data = %{"author" => "John Doe"}
+
+      assert API.create_document(token, @parent, @collection, data) == {:error, :econnrefused}
     end
   end
 
   describe "get_document/2" do
-    test "gets a document returns decoded document" do
-      auth_token = "my-token"
-      path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
+    test "gets a document returns decoded document", %{token: token} do
+      document_id = "esgXQM7pqNCwQwYRJeBJ"
+      path = "#{@parent}/#{@collection}/#{document_id}"
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_get: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^path,
-          [] ->
-            {:ok,
-             %GoogleApi.Firestore.V1.Model.Document{
-               name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-               fields: %{"author" => %Value{stringValue: "John Doe"}},
-               createTime: ~U[2025-01-10 17:14:04.738331Z],
-               updateTime: ~U[2025-01-10 17:14:04.738331Z]
-             }}
-        end
-      ) do
-        assert API.get_document(auth_token, path) == {
-                 :ok,
-                 %PPlusFireStore.Model.Document{
-                   created_at: ~U[2025-01-10 17:14:04.738331Z],
-                   data: %{"author" => "John Doe"},
-                   path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                   updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                 }
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        @parent,
+        @collection,
+        body: PPlusFireStore.Encoder.encode(%{"author" => "John Doe"}),
+        documentId: document_id
+      )
+
+      assert {
+               :ok,
+               %Document{
+                 created_at: %DateTime{},
+                 data: %{"author" => "John Doe"},
+                 path: "projects/my-project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
+                 updated_at: %DateTime{}
                }
-      end
+             } = API.get_document(token, path)
     end
   end
 
   describe "list_documents/3" do
-    test "lists documents returns decoded page" do
-      auth_token = "my-token"
-      parent = "projects/my_project/databases/(default)/documents"
-      collection = "books"
+    test "lists documents returns decoded page", %{token: token} do
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        @parent,
+        @collection,
+        body: PPlusFireStore.Encoder.encode(%{"author" => "John Doe 1"}),
+        documentId: "esgXQM7pqNCwQwYRJeBJ"
+      )
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_list: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^parent,
-          ^collection,
-          [] ->
-            {:ok,
-             %ListDocumentsResponse{
-               documents: [
-                 %GoogleApi.Firestore.V1.Model.Document{
-                   name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                   fields: %{"author" => %Value{stringValue: "John Doe"}},
-                   createTime: ~U[2025-01-10 17:14:04.738331Z],
-                   updateTime: ~U[2025-01-10 17:14:04.738331Z]
-                 },
-                 %GoogleApi.Firestore.V1.Model.Document{
-                   name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBK",
-                   fields: %{"author" => %Value{stringValue: "Jane Doe"}},
-                   createTime: ~U[2025-01-10 17:14:04.738331Z],
-                   updateTime: ~U[2025-01-10 17:14:04.738331Z]
-                 }
-               ],
-               nextPageToken: nil
-             }}
-        end
-      ) do
-        assert API.list_documents(auth_token, parent, collection) == {
-                 :ok,
-                 %Page{
-                   data: [
-                     %PPlusFireStore.Model.Document{
-                       created_at: ~U[2025-01-10 17:14:04.738331Z],
-                       data: %{"author" => "John Doe"},
-                       path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                       updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                     },
-                     %PPlusFireStore.Model.Document{
-                       created_at: ~U[2025-01-10 17:14:04.738331Z],
-                       data: %{"author" => "Jane Doe"},
-                       path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBK",
-                       updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                     }
-                   ],
-                   next_page_token: nil
-                 }
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        @parent,
+        @collection,
+        body: PPlusFireStore.Encoder.encode(%{"author" => "Jane Doe 2"}),
+        documentId: "esgXQM7pqNCwQwYRJeBK"
+      )
+
+      assert {
+               :ok,
+               %Page{
+                 data: [
+                   %Document{
+                     created_at: %DateTime{},
+                     data: %{"author" => "John Doe 1"},
+                     path: "projects/my-project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
+                     updated_at: %DateTime{}
+                   },
+                   %Document{
+                     created_at: %DateTime{},
+                     data: %{"author" => "Jane Doe 2"},
+                     path: "projects/my-project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBK",
+                     updated_at: %DateTime{}
+                   }
+                 ],
+                 next_page_token: nil
                }
-      end
+             } = API.list_documents(token, @parent, @collection)
     end
   end
 
   describe "list_documents/4" do
-    test "lists documents with opts returns decoded page" do
-      auth_token = "my-token"
-      parent = "projects/my_project/databases/(default)/documents"
-      collection = "books"
+    test "lists documents with opts returns decoded page", %{token: token} do
+      ids = ["esgXQM7pqNCwQwYRJeBJ", "esgXQM7pqNCwQwYRJeBK", "esgXQM7pqNCwQwYRJeBL"]
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_list: fn _conn, _parent, _collection, _opts ->
-          {:ok,
-           %ListDocumentsResponse{
-             documents: [
-               %GoogleApi.Firestore.V1.Model.Document{
-                 name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                 fields: %{"author" => %Value{stringValue: "John Doe"}},
-                 createTime: ~U[2025-01-10 17:14:04.738331Z],
-                 updateTime: ~U[2025-01-10 17:14:04.738331Z]
-               }
-             ],
-             nextPageToken:
-               "AFTOeJwGTcAtgJAapbJ0K7tPwpH9saWYfm4bG991Kk4qdP3NXq9pFfp5IW-E6lwbnRW661DKMJjo5EA7y2iF8GFjaCPLlXN7c0jMYATSRgclgLEChgsSIBjt"
-           }}
-        end
-      ) do
-        assert API.list_documents(auth_token, parent, collection) == {
-                 :ok,
-                 %Page{
-                   data: [
-                     %PPlusFireStore.Model.Document{
-                       created_at: ~U[2025-01-10 17:14:04.738331Z],
-                       data: %{"author" => "John Doe"},
-                       path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                       updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                     }
-                   ],
-                   next_page_token:
-                     "AFTOeJwGTcAtgJAapbJ0K7tPwpH9saWYfm4bG991Kk4qdP3NXq9pFfp5IW-E6lwbnRW661DKMJjo5EA7y2iF8GFjaCPLlXN7c0jMYATSRgclgLEChgsSIBjt"
-                 }
-               }
-      end
+      ids
+      |> Enum.with_index()
+      |> Enum.each(fn {document_id, index} ->
+        token
+        |> Connection.new()
+        |> Projects.firestore_projects_databases_documents_create_document(
+          @parent,
+          @collection,
+          body: PPlusFireStore.Encoder.encode(%{"author" => "John Doe #{index + 1}"}),
+          documentId: document_id
+        )
+      end)
+
+      assert {:ok,
+              %Page{
+                data: [
+                  %Document{
+                    created_at: %DateTime{},
+                    data: %{"author" => "John Doe 1"},
+                    path: "projects/my-project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
+                    updated_at: %DateTime{}
+                  }
+                ],
+                next_page_token: _next_page_token
+              }} = API.list_documents(token, @parent, @collection, pageSize: 1)
     end
   end
 
   describe "update_document/4" do
-    test "updates a document returns decoded document" do
-      auth_token = "my-token"
-      path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
+    test "updates a document returns decoded document", %{token: token} do
+      {:ok, document} =
+        token
+        |> Connection.new()
+        |> Projects.firestore_projects_databases_documents_create_document(
+          "projects/my-project/databases/(default)/documents",
+          "books",
+          body: PPlusFireStore.Encoder.encode(%{"author" => "John Doe"}),
+          documentId: "esgXQM7pqNCwQwYRJeBJ"
+        )
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_patch: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^path,
-          [body: %{fields: %{"author" => %{stringValue: "John Doe da Silva"}}}] ->
-            {:ok,
-             %GoogleApi.Firestore.V1.Model.Document{
-               name: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-               fields: %{"author" => %Value{stringValue: "John Doe da Silva"}},
-               createTime: ~U[2025-01-10 17:14:04.738331Z],
-               updateTime: ~U[2025-01-10 17:14:04.738331Z]
-             }}
-        end
-      ) do
-        assert API.update_document(auth_token, path, %{"author" => "John Doe da Silva"}) == {
-                 :ok,
-                 %PPlusFireStore.Model.Document{
-                   created_at: ~U[2025-01-10 17:14:04.738331Z],
-                   data: %{"author" => "John Doe da Silva"},
-                   path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-                   updated_at: ~U[2025-01-10 17:14:04.738331Z]
-                 }
+      path = document.name
+      data = %{"author" => "John Doe da Silva"}
+
+      assert {
+               :ok,
+               %Document{
+                 created_at: %DateTime{},
+                 data: %{"author" => "John Doe da Silva"},
+                 path: ^path,
+                 updated_at: %DateTime{}
                }
-      end
+             } = API.update_document(token, path, data)
     end
   end
 
   describe "delete_document/2" do
-    test "deletes a document" do
-      auth_token = "my-token"
-      path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
+    test "deletes a document", %{token: token} do
+      document_id = "esgXQM7pqNCwQwYRJeBJ"
 
-      with_mock(Projects,
-        firestore_projects_databases_documents_delete: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^path,
-          ["currentDocument.exists": true] ->
-            {:ok, %Empty{}}
-        end
-      ) do
-        assert API.delete_document(auth_token, path) == :ok
-      end
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        @parent,
+        @collection,
+        body: PPlusFireStore.Encoder.encode(%{"author" => "John Doe"}),
+        documentId: document_id
+      )
+
+      path = "#{@parent}/#{@collection}/#{document_id}"
+
+      assert API.delete_document(token, path) == :ok
     end
 
-    test "return error if document does not exist" do
-      auth_token = "my-token"
-      path = "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ"
+    test "return error if document does not exist", %{token: token} do
+      path = "#{@parent}/#{@collection}/esgXQM7pqNCwQwYRJeBJ"
 
-      tesla_env =
-        %Tesla.Env{
-          method: :delete,
-          url: "https://firestore.googleapis.com/v1/#{path}",
-          query: ["currentDocument.exists": true],
-          headers: [
-            {"date", "Mon, 20 Jan 2025 13:11:21 GMT"},
-            {"server", "ESF"},
-            {"vary", "Origin"},
-            {"content-type", "application/json; charset=UTF-8"},
-            {"x-debug-tracking-id", "7981810200057583707;o=1"},
-            {"x-xss-protection", "0"},
-            {"x-frame-options", "SAMEORIGIN"},
-            {"x-content-type-options", "nosniff"},
-            {"alt-svc", ~s(h3=":443"; ma=2592000,h3-29=":443"; ma=2592000)}
-          ],
-          body:
-            "{\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"No document to update: #{path},\n    \"status\": \"NOT_FOUND\"\n  }\n}\n",
-          status: 404,
-          opts: [],
-          __module__: Connection,
-          __client__: %Tesla.Client{
-            fun: nil,
-            pre: [
-              {Tesla.Middleware.Headers, :call,
-               [
-                 [
-                   {"authorization", "Bearer #{auth_token}"}
-                 ]
-               ]}
-            ],
-            post: [],
-            adapter: {Httpc, :call, [[]]}
-          }
-        }
-
-      with_mock(Projects,
-        firestore_projects_databases_documents_delete: fn
-          %Tesla.Client{
-            pre: [
-              {
-                Headers,
-                :call,
-                [[{"authorization", "Bearer " <> ^auth_token}]]
-              }
-            ]
-          },
-          ^path,
-          ["currentDocument.exists": true] ->
-            {:error, tesla_env}
-        end
-      ) do
-        assert API.delete_document(auth_token, path) == {:error, :not_found, tesla_env}
-      end
+      assert {:error, :not_found, %Tesla.Env{status: 404}} = API.delete_document(token, path)
     end
+  end
+
+  defp clear_database(token) do
+    client = Connection.new(token)
+
+    client
+    |> Projects.firestore_projects_databases_documents_list(@parent, @collection)
+    |> elem(1)
+    |> Map.get(:documents)
+    |> Kernel.||([])
+    |> Enum.map(& &1.name)
+    |> Enum.map(&Projects.firestore_projects_databases_documents_delete(client, &1))
   end
 end

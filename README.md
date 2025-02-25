@@ -307,6 +307,63 @@ You can pass the `:currentDocument.exists` parameter in the options to avoid thi
 MyApp.MyFireStoreRepo.delete_document("addresses/DxN4EvMyWCh7oTfVmxP9", ["currentDocument.exists": false])
 ```
 
+## Contributing
+
+### Requirements
+
+- Elixir 1.18+
+- Erlang 27+
+- Docker
+- Docker Compose
+
+### Steps
+
+1. Fork the project
+2. Create a feature branch
+3. Create a pull request
+
+### Tests
+
+Run the firestore emulator container:
+
+```bash
+docker compose up -d
+```
+
+Run tests:
+
+```bash
+mix test
+```
+
+Run Coverage, checks and tests:
+
+```bash
+mix ci
+```
+
+### Publishing
+
+Pull requests format
+
+Feature
+
+```bash
+git checkout -b feature/feature-name
+```
+
+fix
+
+```bash
+git checkout -b fix/bugfix-name
+```
+
+Commit
+
+```bash
+git commit -am "feat: commit message"
+```
+
 ## License
 
 [MIT License](LICENSE)
