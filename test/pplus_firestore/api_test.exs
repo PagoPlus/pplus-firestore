@@ -340,6 +340,16 @@ defmodule PPlusFireStore.APITest do
       assert Enum.all?(books, fn %_{data: %{"author" => author}} -> author == "John Doe" end)
     end
 
+    test "return all documents filtered by author passing collection as string", %{token: token} do
+      author = "John Doe"
+
+      query = where("books", "author" == author)
+
+      assert {:ok, books} = API.run_query(token, @parent, query)
+      assert length(books) == 3
+      assert Enum.all?(books, fn %_{data: %{"author" => author}} -> author == "John Doe" end)
+    end
+
     test "return all documents filtered by tags", %{token: token} do
       tag = "romance"
 
@@ -716,6 +726,30 @@ defmodule PPlusFireStore.APITest do
 
         Code.eval_quoted(ast, [token: token, parent: @parent], __ENV__)
       end
+    end
+
+    test "using where after composite filter", %{token: token} do
+      query =
+        from("books")
+        |> where("author" == "John Doe" and "pages" > 300)
+        |> where("metadata.year" <= 2021)
+
+      assert {:ok, books} = API.run_query(token, @parent, query)
+      assert length(books) == 1
+
+      assert Enum.all?(books, fn %_{data: %{"author" => author, "pages" => pages, "metadata" => metadata}} ->
+               author == "John Doe" and pages > 300 and metadata["year"] <= 2021
+             end)
+    end
+
+    test "using where after unary filter", %{token: token} do
+      query =
+        from("books")
+        |> where(is_nil("author"))
+        |> where("metadata.year" <= 2021)
+
+      assert {:ok, books} = API.run_query(token, @parent, query)
+      assert length(books) == 1
     end
   end
 

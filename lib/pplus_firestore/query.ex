@@ -240,30 +240,41 @@ defmodule PPlusFireStore.Query do
     struct(query, select: %Projection{fields: fields})
   end
 
-  defp build_where(query, expression, op, opts) do
+  def build_where(%StructuredQuery{where: nil} = query, filter, _op) do
+    struct(query, where: filter)
+  end
+
+  def build_where(%StructuredQuery{where: %Filter{unaryFilter: %UnaryFilter{}} = current} = query, filter, op) do
+    struct(query,
+      where: %Filter{compositeFilter: %CompositeFilter{op: op, filters: [current, filter]}}
+    )
+  end
+
+  def build_where(%StructuredQuery{where: %Filter{fieldFilter: %FieldFilter{}} = current} = query, filter, op) do
+    struct(query,
+      where: %Filter{compositeFilter: %CompositeFilter{op: op, filters: [current, filter]}}
+    )
+  end
+
+  def build_where(%StructuredQuery{where: %Filter{compositeFilter: %CompositeFilter{}} = current} = query, filter, op) do
+    struct(query,
+      where: %Filter{compositeFilter: %CompositeFilter{op: op, filters: [current, filter]}}
+    )
+  end
+
+  def build_where(collection, filter, _op) when is_binary(collection) do
+    %StructuredQuery{
+      from: [%CollectionSelector{collectionId: collection}],
+      where: filter
+    }
+  end
+
+  def build_where(query, expression, op, opts) do
     filter = parse_expression(expression)
 
     query =
       quote do
-        case unquote(query) do
-          %StructuredQuery{where: nil} = query ->
-            struct(query, where: unquote(filter))
-
-          %StructuredQuery{where: %Filter{unaryFilter: %UnaryFilter{}} = current} = query ->
-            struct(query,
-              where: %Filter{compositeFilter: %CompositeFilter{op: unquote(op), filters: [current, unquote(filter)]}}
-            )
-
-          %StructuredQuery{where: %Filter{fieldFilter: %FieldFilter{}} = current} = query ->
-            struct(query,
-              where: %Filter{compositeFilter: %CompositeFilter{op: unquote(op), filters: [current, unquote(filter)]}}
-            )
-
-          %StructuredQuery{where: %Filter{compositeFilter: %CompositeFilter{filters: current}}} = query ->
-            struct(query,
-              where: %Filter{compositeFilter: %CompositeFilter{op: unquote(op), filters: current ++ [unquote(filter)]}}
-            )
-        end
+        build_where(unquote(query), unquote(filter), unquote(op))
       end
 
     query = apply_hints(query, Keyword.take(opts, [:limit, :offset, :order_by, :select]))
@@ -345,40 +356,40 @@ defmodule PPlusFireStore.Query do
   end
 
   defp apply_hints(query, hints) do
-    Enum.reduce(hints, query, fn {key, value}, query -> apply_hints(query, key, value) end)
+    Enum.reduce(hints, query, fn {key, value}, query -> apply_hint(query, key, value) end)
   end
 
-  defp apply_hints(query, :where, expression) do
+  defp apply_hint(query, :where, expression) do
     quote do
       where(unquote(query), unquote(expression))
     end
   end
 
-  defp apply_hints(query, :limit, limit) do
+  defp apply_hint(query, :limit, limit) do
     quote do
       limit(unquote(query), unquote(limit))
     end
   end
 
-  defp apply_hints(query, :offset, offset) do
+  defp apply_hint(query, :offset, offset) do
     quote do
       offset(unquote(query), unquote(offset))
     end
   end
 
-  defp apply_hints(query, :order_by, {field, direction}) do
+  defp apply_hint(query, :order_by, {field, direction}) do
     quote do
       order_by(unquote(query), unquote(field), unquote(direction))
     end
   end
 
-  defp apply_hints(query, :order_by, field) do
+  defp apply_hint(query, :order_by, field) do
     quote do
       order_by(unquote(query), unquote(field))
     end
   end
 
-  defp apply_hints(query, :select, fields) do
+  defp apply_hint(query, :select, fields) do
     quote do
       select(unquote(query), unquote(fields))
     end
