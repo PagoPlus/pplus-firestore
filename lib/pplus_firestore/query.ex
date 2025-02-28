@@ -81,7 +81,7 @@ defmodule PPlusFireStore.Query do
   ```
 
   ```elixir
-  from("books", allDescendants: true)
+  from("books", all_descendants: true)
   ```
   """
   @spec from(collection :: String.t(), opts :: Keyword.t()) :: StructuredQuery.t()
