@@ -86,7 +86,7 @@ defmodule PPlusFireStore.Query do
   """
   @spec from(collection :: String.t(), opts :: Keyword.t()) :: StructuredQuery.t()
   defmacro from(collection, opts \\ []) do
-    all_descendants = Keyword.get(opts, :allDescendants, false)
+    all_descendants = Keyword.get(opts, :all_descendants, false)
 
     query =
       quote do

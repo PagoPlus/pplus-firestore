@@ -89,6 +89,24 @@ defmodule PPlusFireStore.APITest do
                }
              } = API.get_document(token, path)
     end
+
+    test "get documents from subcollection", %{token: token} do
+      parent = @parent <> "/col0/doc/col1/doc/col2/doc/col3/doc/col4/doc"
+      collection = "col5"
+
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        parent,
+        collection,
+        body: PPlusFireStore.Encoder.encode(%{"key" => "value"}),
+        documentId: "doc"
+      )
+
+      path = parent <> "/col5/doc"
+
+      assert {:ok, %{data: %{"key" => "value"}, path: ^path}} = API.get_document(token, path)
+    end
   end
 
   describe "list_documents/3" do
@@ -310,11 +328,24 @@ defmodule PPlusFireStore.APITest do
       assert length(books) == 11
     end
 
-    test "return all documents with option 'allDescendants'", %{token: token} do
-      query = from("books", allDescendants: true)
+    test "return all documents with option 'all_descendants'", %{token: token} do
+      root = @parent
+      parent = root <> "/col0/doc/col1/doc/col2/doc/col3/doc/col4/doc"
+      collection = "col5"
 
-      assert {:ok, books} = API.run_query(token, @parent, query)
-      assert length(books) == 11
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        parent,
+        collection,
+        body: PPlusFireStore.Encoder.encode(%{"key" => "value"}),
+        documentId: "doc"
+      )
+
+      query = from("col5", all_descendants: true)
+
+      assert {:ok, books} = API.run_query(token, root, query)
+      assert length(books) == 1
     end
 
     test "return all documents with limit", %{token: token} do
@@ -750,6 +781,28 @@ defmodule PPlusFireStore.APITest do
 
       assert {:ok, books} = API.run_query(token, @parent, query)
       assert length(books) == 1
+    end
+
+    test "get documents from subcollection", %{token: token} do
+      parent = @parent <> "/col0/doc/col1/doc/col2/doc/col3/doc/col4/doc"
+      collection = "col5"
+
+      token
+      |> Connection.new()
+      |> Projects.firestore_projects_databases_documents_create_document(
+        parent,
+        collection,
+        body: PPlusFireStore.Encoder.encode(%{"key" => "value"}),
+        documentId: "doc"
+      )
+
+      query = from(collection)
+
+      assert {:ok, docs} = API.run_query(token, parent, query)
+      assert length(docs) == 1
+
+      assert hd(docs).data == %{"key" => "value"}
+      assert hd(docs).path == "#{parent}/col5/doc"
     end
   end
 
