@@ -222,7 +222,6 @@ defmodule PPlusFireStore.API do
     end
   end
 
-  defp handle_response({:ok, response}) when is_list(response), do: {:ok, Enum.map(response, &Decoder.decode/1)}
   defp handle_response({:ok, response}), do: {:ok, Decoder.decode(response)}
 
   defp handle_response({:error, %Tesla.Env{status: 404} = details}), do: {:error, :not_found, details}

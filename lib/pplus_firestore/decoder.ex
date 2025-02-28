@@ -21,13 +21,13 @@ defmodule PPlusFireStore.Decoder do
         updated_at: ~U[2025-01-10 17:14:04.738331Z]
       }
   """
-  alias GoogleApi.Firestore.V1.Model.RunQueryResponse
   alias GoogleApi.Firestore.V1.Model.ArrayValue
   alias GoogleApi.Firestore.V1.Model.Document
   alias GoogleApi.Firestore.V1.Model.Empty
   alias GoogleApi.Firestore.V1.Model.LatLng
   alias GoogleApi.Firestore.V1.Model.ListDocumentsResponse
   alias GoogleApi.Firestore.V1.Model.MapValue
+  alias GoogleApi.Firestore.V1.Model.RunQueryResponse
   alias GoogleApi.Firestore.V1.Model.Value
 
   # Internal models
@@ -60,7 +60,11 @@ defmodule PPlusFireStore.Decoder do
     }
   end
 
-  def decode(%RunQueryResponse{document: %Document{} = document}), do: decode(document)
+  def decode([%RunQueryResponse{} | _] = response) do
+    response
+    |> Enum.reject(&is_nil(&1.document))
+    |> Enum.map(&decode(&1.document))
+  end
 
   def decode(%Empty{}), do: nil
 

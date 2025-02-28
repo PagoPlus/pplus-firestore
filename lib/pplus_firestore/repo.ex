@@ -244,8 +244,8 @@ defmodule PPlusFireStore.Repo do
         API.list_documents(token(), parent, collection, opts)
       end
 
-      def run_query(query, opts \\ []) do
-        API.run_query(token(), @base_path, query, opts)
+      def run_query(path \\ "", query, opts \\ []) do
+        API.run_query(token(), build_path(path), query, opts)
       end
 
       def update_document(path, data, opts \\ []) do
