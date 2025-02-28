@@ -300,34 +300,6 @@ defmodule PPlusFireStore.APITest do
         end
       )
 
-      Enum.each(
-        [
-          %{
-            "brand" => "Honda",
-            "model" => "CG 160 Start",
-            "year" => 2025,
-            "color" => "Black",
-            "price" => 16_466
-          },
-          %{
-            "brand" => "Royal Enfield",
-            "model" => "Classic 350",
-            "year" => 2025,
-            "color" => "Black",
-            "price" => 22_890
-          }
-        ],
-        fn motorcycle ->
-          token
-          |> Connection.new()
-          |> Projects.firestore_projects_databases_documents_create_document(
-            @parent,
-            "motorcycles",
-            body: PPlusFireStore.Encoder.encode(motorcycle)
-          )
-        end
-      )
-
       {:ok, token: token}
     end
 
