@@ -77,7 +77,7 @@ defmodule PPlusFireStore.Query do
   ## Example
 
   ```elixir
-  from("books", where: "author" == "John Doe", limit: 5, order_by: ["author", :asc])
+  from("books", where: "author" == "John Doe", limit: 5, order_by: {"author", :asc})
   ```
 
   ```elixir
