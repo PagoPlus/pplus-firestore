@@ -29,7 +29,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due"},
+          data: %{"author" => "John Due"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
@@ -69,7 +69,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due"},
+          data: %{"author" => "John Due"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
@@ -106,7 +106,7 @@ defmodule PPlusFireStore.API do
           data: [
             %PPlusFireStore.Model.Document{
               path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-              data: %{"author" => "Jhon Due"},
+              data: %{"author" => "John Due"},
               created_at: ~U[2025-01-10 17:14:04.738331Z],
               updated_at: ~U[2025-01-10 17:14:04.738331Z]
             }
@@ -160,7 +160,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due da Silva"},
+          data: %{"author" => "John Due da Silva"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
