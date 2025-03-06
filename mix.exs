@@ -2,7 +2,7 @@ defmodule PPlusFireStore.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/PagoPlus/pplus-firestore"
-  @version "0.1.1"
+  @version "0.1.2"
 
   def project do
     [
@@ -72,7 +72,8 @@ defmodule PPlusFireStore.MixProject do
     %{
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      maintainers: ["JVMartyns", "Fernando Mumbach"]
+      maintainers: ["JVMartyns", "Fernando Mumbach"],
+      description: "A wrapper that simplifies interactions with the official Cloud Firestore API"
     }
   end
 
