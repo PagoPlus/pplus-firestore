@@ -72,7 +72,7 @@ defmodule PPlusFireStore.MixProject do
     %{
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url},
-      maintaners: ["JVMartyns", "Fernando Mumbach"]
+      maintainers: ["JVMartyns", "Fernando Mumbach"]
     }
   end
 
