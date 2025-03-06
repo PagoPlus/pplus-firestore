@@ -1,13 +1,17 @@
 defmodule PPlusFireStore.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/PagoPlus/pplus-firestore"
+  @version "0.1.0"
+
   def project do
     [
       app: :pplus_firestore,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       docs: docs(),
       aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
@@ -31,6 +35,9 @@ defmodule PPlusFireStore.MixProject do
 
   def docs do
     [
+      name: "PPlusFireStore",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
       main: "readme",
       extras: ["README.md", "LICENSE"]
     ]
@@ -59,6 +66,14 @@ defmodule PPlusFireStore.MixProject do
       ],
       docs: ["docs", &copy_images/1]
     ]
+  end
+
+  defp package do
+    %{
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source_url},
+      maintaners: ["JVMartyns", "Fernando Mumbach"]
+    }
   end
 
   defp copy_images(_) do
