@@ -32,7 +32,7 @@ defmodule PPlusFireStore.MixProject do
   def docs do
     [
       main: "readme",
-      extras: ["README.md"]
+      extras: ["README.md", "LICENSE"]
     ]
   end
 
@@ -56,7 +56,13 @@ defmodule PPlusFireStore.MixProject do
         "deps.unlock --check-unused",
         "credo suggest --strict --all",
         "coveralls"
-      ]
+      ],
+      docs: ["docs", &copy_images/1]
     ]
+  end
+
+  defp copy_images(_) do
+    File.mkdir_p("doc/priv/images")
+    File.cp_r("priv/images", "doc/priv/images")
   end
 end

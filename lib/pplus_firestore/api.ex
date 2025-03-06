@@ -3,6 +3,8 @@ defmodule PPlusFireStore.API do
   Module to interact with Google Firestore API
   """
   alias GoogleApi.Firestore.V1.Api.Projects
+  alias GoogleApi.Firestore.V1.Model.RunQueryRequest
+  alias GoogleApi.Firestore.V1.Model.StructuredQuery
   alias PPlusFireStore.Connection
   alias PPlusFireStore.Decoder
   alias PPlusFireStore.Encoder
@@ -27,7 +29,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due"},
+          data: %{"author" => "John Due"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
@@ -67,7 +69,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due"},
+          data: %{"author" => "John Due"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
@@ -104,7 +106,7 @@ defmodule PPlusFireStore.API do
           data: [
             %PPlusFireStore.Model.Document{
               path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-              data: %{"author" => "Jhon Due"},
+              data: %{"author" => "John Due"},
               created_at: ~U[2025-01-10 17:14:04.738331Z],
               updated_at: ~U[2025-01-10 17:14:04.738331Z]
             }
@@ -129,6 +131,20 @@ defmodule PPlusFireStore.API do
     |> handle_response()
   end
 
+  @spec run_query(auth_token :: String.t(), parent :: String.t(), query :: StructuredQuery.t(), opts :: Keyword.t()) ::
+          {:ok, Page.t(Document.t())}
+          | {:error, Tesla.Env.t()}
+          | {:error, any()}
+  def run_query(auth_token, parent, query, opts \\ []) do
+    body = %RunQueryRequest{structuredQuery: query}
+    opts = Keyword.put(opts, :body, body)
+
+    auth_token
+    |> Connection.new()
+    |> Projects.firestore_projects_databases_documents_run_query(parent, opts)
+    |> handle_response()
+  end
+
   @doc """
   Update document in firestore
 
@@ -144,7 +160,7 @@ defmodule PPlusFireStore.API do
       {:ok,
         %PPlusFireStore.Model.Document{
           path: "projects/my_project/databases/(default)/documents/books/esgXQM7pqNCwQwYRJeBJ",
-          data: %{"author" => "Jhon Due da Silva"},
+          data: %{"author" => "John Due da Silva"},
           created_at: ~U[2025-01-10 17:14:04.738331Z],
           updated_at: ~U[2025-01-10 17:14:04.738331Z]
         }}
