@@ -32,7 +32,7 @@ defmodule PPlusFireStore.MixProject do
   def docs do
     [
       main: "readme",
-      extras: ["README.md"]
+      extras: ["README.md", "LICENSE"]
     ]
   end
 
@@ -42,7 +42,7 @@ defmodule PPlusFireStore.MixProject do
       {:google_api_firestore, "~> 0.32"},
       {:goth, "~> 1.4"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.3.3", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.4.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: :test},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
@@ -56,7 +56,13 @@ defmodule PPlusFireStore.MixProject do
         "deps.unlock --check-unused",
         "credo suggest --strict --all",
         "coveralls"
-      ]
+      ],
+      docs: ["docs", &copy_images/1]
     ]
+  end
+
+  defp copy_images(_) do
+    File.mkdir_p("doc/priv/images")
+    File.cp_r("priv/images", "doc/priv/images")
   end
 end

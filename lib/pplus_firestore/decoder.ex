@@ -27,6 +27,7 @@ defmodule PPlusFireStore.Decoder do
   alias GoogleApi.Firestore.V1.Model.LatLng
   alias GoogleApi.Firestore.V1.Model.ListDocumentsResponse
   alias GoogleApi.Firestore.V1.Model.MapValue
+  alias GoogleApi.Firestore.V1.Model.RunQueryResponse
   alias GoogleApi.Firestore.V1.Model.Value
 
   # Internal models
@@ -35,6 +36,7 @@ defmodule PPlusFireStore.Decoder do
 
   @spec decode(GoogleApi.Firestore.V1.Model.Document.t()) :: PPlusDocument.t()
   @spec decode(GoogleApi.Firestore.V1.Model.ListDocumentsResponse.t()) :: PPlusPage.t(PPlusDocument.t())
+  @spec decode(GoogleApi.Firestore.V1.Model.RunQueryResponse.t()) :: PPlusPage.t(PPlusDocument.t())
   @spec decode(GoogleApi.Firestore.V1.Model.Empty.t()) :: nil
   def decode(%Document{fields: nil} = document) do
     decode(struct(document, fields: %{}))
@@ -56,6 +58,12 @@ defmodule PPlusFireStore.Decoder do
       data: Enum.map(documents, &decode/1),
       next_page_token: token
     }
+  end
+
+  def decode([%RunQueryResponse{} | _] = response) do
+    response
+    |> Enum.reject(&is_nil(&1.document))
+    |> Enum.map(&decode(&1.document))
   end
 
   def decode(%Empty{}), do: nil
