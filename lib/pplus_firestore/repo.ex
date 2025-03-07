@@ -208,18 +208,15 @@ defmodule PPlusFireStore.Repo do
       alias PPlusFireStore.API
       alias PPlusFireStore.Repo
 
-      @config Application.compile_env(opts[:otp_app], __MODULE__, [])
-      @project_id Keyword.get_lazy(@config, :project_id, fn ->
-                    raise ArgumentError, "`project_id` is not set in config file for #{__MODULE__}"
-                  end)
-      @database_id Keyword.get(@config, :database_id, "(default)")
-      @base_path "projects/#{@project_id}/databases/#{@database_id}/documents"
-      @token_fetcher Keyword.get(@config, :token_fetcher, Goth)
+      @otp_app Keyword.fetch!(opts, :otp_app)
+      @default_token_fetcher Goth
 
-      def config, do: @config
+      def config, do: Application.get_env(@otp_app, __MODULE__, [])
 
       def token do
-        with {:ok, %{token: token}} <- @token_fetcher.fetch(__MODULE__) do
+        token_fetcher = Keyword.get(config(), :token_fetcher, Goth)
+
+        with {:ok, token} <- token_fetcher.fetch(__MODULE__) do
           token
         end
       end
@@ -258,10 +255,14 @@ defmodule PPlusFireStore.Repo do
 
       # if path is already a full path, don't prepend the base path
       defp build_path(path) do
-        if String.contains?(path, @base_path) do
+        project_id = Keyword.fetch!(config(), :project_id)
+        database_id = Keyword.get(config(), :database_id, "(default)")
+        base_path = "projects/#{project_id}/databases/#{database_id}/documents"
+
+        if String.contains?(path, base_path) do
           path
         else
-          Path.join(@base_path, path)
+          Path.join(base_path, path)
         end
       end
 
