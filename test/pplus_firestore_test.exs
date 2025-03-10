@@ -26,14 +26,6 @@ defmodule PPlusFireStoreTest do
       token_fetcher: PPlusFireStore.TokenFetcherMock
     )
 
-    Module.create(
-      TestFireStoreRepo,
-      quote do
-        use PPlusFireStore.Repo, otp_app: :my_app
-      end,
-      Macro.Env.location(__ENV__)
-    )
-
     assert {:ok, pid} = PPlusFireStore.start_link([TestFireStoreRepo])
     assert Process.alive?(pid)
   end

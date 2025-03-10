@@ -25,7 +25,7 @@ defmodule PPlusFireStore.Encoder do
   %{
     fields: %{
       "age" => %{integerValue: 42},
-      "birth_data" => %{timestampValue: %{seconds: 896779801, nanos: 23149000}},
+      "birth_data" => %{timestampValue: ~U[1998-06-02 09:30:01.023149Z]},
       "name" => %{stringValue: "John Doe"}
     }
   }
@@ -60,6 +60,9 @@ defmodule PPlusFireStore.Encoder do
   """
 
   @spec encode(data :: map()) :: map()
+
+  def encode(%DateTime{} = value), do: encode_value(value)
+
   def encode(data) when is_map(data) do
     %{fields: Map.new(data, fn {k, v} -> {k, encode_value(v)} end)}
   end
@@ -74,6 +77,7 @@ defmodule PPlusFireStore.Encoder do
   defp encode_value(value) when is_float(value), do: %{doubleValue: value}
   defp encode_value(value) when is_integer(value), do: %{integerValue: value}
   defp encode_value(value) when is_binary(value), do: %{stringValue: value}
+  defp encode_value(%DateTime{} = value), do: %{timestampValue: value}
 
   defp encode_value({lat, lng}) when is_number(lat) and is_number(lng) do
     %{geoPointValue: %{latitude: lat, longitude: lng}}
@@ -81,18 +85,6 @@ defmodule PPlusFireStore.Encoder do
 
   defp encode_value(%{latitude: lat, longitude: lng}) when is_number(lat) and is_number(lng) do
     %{geoPointValue: %{latitude: lat, longitude: lng}}
-  end
-
-  defp encode_value(%DateTime{} = value) do
-    %{
-      timestampValue: %{
-        seconds: DateTime.to_unix(value),
-        nanos:
-          value.microsecond
-          |> elem(0)
-          |> Kernel.*(1000)
-      }
-    }
   end
 
   defp encode_value(value) when is_list(value) do
