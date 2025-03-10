@@ -245,10 +245,7 @@ defmodule PPlusFireStore.EncoderTest do
       assert Encoder.encode(map_to_encode) == %{
                fields: %{
                  "key" => %{
-                   timestampValue: %{
-                     seconds: 1_736_529_244,
-                     nanos: 738_331_000
-                   }
+                   timestampValue: ~U[2025-01-10 17:14:04.738331Z]
                  }
                }
              }
@@ -267,10 +264,7 @@ defmodule PPlusFireStore.EncoderTest do
                    mapValue: %{
                      fields: %{
                        "nested_key" => %{
-                         timestampValue: %{
-                           seconds: 1_736_529_244,
-                           nanos: 738_331_000
-                         }
+                         timestampValue: ~U[2025-01-10 17:14:04.738331Z]
                        }
                      }
                    }

@@ -216,7 +216,7 @@ defmodule PPlusFireStore.Repo do
       def token do
         token_fetcher = Keyword.get(config(), :token_fetcher, Goth)
 
-        with {:ok, token} <- token_fetcher.fetch(__MODULE__) do
+        with {:ok, %{token: token}} <- token_fetcher.fetch(__MODULE__) do
           token
         end
       end
