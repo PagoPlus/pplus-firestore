@@ -272,5 +272,65 @@ defmodule PPlusFireStore.EncoderTest do
                }
              }
     end
+
+    test "encode atom value" do
+      map_to_encode = %{
+        "key" => :atom
+      }
+
+      assert Encoder.encode(map_to_encode) == %{
+               fields: %{
+                 "key" => %{
+                   stringValue: "atom"
+                 }
+               }
+             }
+    end
+
+    test "encode map with nested map with atom value" do
+      map_to_encode = %{
+        "key" => %{
+          "nested_key" => :atom
+        }
+      }
+
+      assert Encoder.encode(map_to_encode) == %{
+               fields: %{
+                 "key" => %{
+                   mapValue: %{
+                     fields: %{
+                       "nested_key" => %{
+                         stringValue: "atom"
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+    end
+
+    test "encode map with atom keys" do
+      map_to_encode = %{
+        key: "value",
+        nested: %{
+          inner_key: "inner_value"
+        }
+      }
+
+      assert Encoder.encode(map_to_encode) == %{
+               fields: %{
+                 key: %{stringValue: "value"},
+                 nested: %{
+                   mapValue: %{
+                     fields: %{
+                       inner_key: %{
+                         stringValue: "inner_value"
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+    end
   end
 end
