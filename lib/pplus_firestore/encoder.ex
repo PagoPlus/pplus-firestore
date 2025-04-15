@@ -77,6 +77,7 @@ defmodule PPlusFireStore.Encoder do
   defp encode_value(value) when is_float(value), do: %{doubleValue: value}
   defp encode_value(value) when is_integer(value), do: %{integerValue: value}
   defp encode_value(value) when is_binary(value), do: %{stringValue: value}
+  defp encode_value(value) when is_atom(value), do: %{stringValue: to_string(value)}
   defp encode_value(%DateTime{} = value), do: %{timestampValue: value}
 
   defp encode_value({lat, lng}) when is_number(lat) and is_number(lng) do
