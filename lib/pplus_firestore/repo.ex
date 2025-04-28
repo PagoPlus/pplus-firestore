@@ -253,11 +253,15 @@ defmodule PPlusFireStore.Repo do
         API.delete_document(token(), build_path(path), opts)
       end
 
-      # if path is already a full path, don't prepend the base path
-      defp build_path(path) do
+      def base_path do
         project_id = Keyword.fetch!(config(), :project_id)
         database_id = Keyword.get(config(), :database_id, "(default)")
-        base_path = "projects/#{project_id}/databases/#{database_id}/documents"
+        "projects/#{project_id}/databases/#{database_id}/documents"
+      end
+
+      # if path is already a full path, don't prepend the base path
+      defp build_path(path) do
+        base_path = base_path()
 
         if String.contains?(path, base_path) do
           path
