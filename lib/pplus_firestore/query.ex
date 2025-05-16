@@ -299,30 +299,25 @@ defmodule PPlusFireStore.Query do
   defp parse_expression({:<, _, [field, value]}), do: build_field_filter(field, "LESS_THAN", value)
   defp parse_expression({:<=, _, [field, value]}), do: build_field_filter(field, "LESS_THAN_OR_EQUAL", value)
   defp parse_expression({:!=, _, [field, value]}), do: build_field_filter(field, "NOT_EQUAL", value)
-  defp parse_expression({:in, _, [field, value]}) when is_list(value), do: build_field_filter(field, "IN", value)
 
-  defp parse_expression({:in, _, [_field, _value]}) do
-    raise(ArgumentError, "IN operator requires a list as the right side of the expression\n\n")
-  end
-
-  defp parse_expression({:not, _, [{:in, _, [field, value]}]}) when is_list(value) do
+  defp parse_expression({:not, _, [{:in, _, [field, value]}]}) do
     build_field_filter(field, "NOT_IN", value)
   end
 
-  defp parse_expression({:not, _, [{:in, _, [_field, _value]}]}) do
-    raise(ArgumentError, "IN operator requires a list as the right side of the expression\n\n")
-  end
+  defp parse_expression({:in, _, [field, value]}), do: build_field_filter(field, "IN", value)
 
   defp parse_expression({:is_nil, _, [field]}), do: build_unary_filter(field, "IS_NULL")
 
   defp parse_expression({:contains, _, [field, value]}), do: build_field_filter(field, "ARRAY_CONTAINS", value)
 
-  defp parse_expression({:contains_any, _, [field, value]}) when is_list(value) do
+  defp parse_expression({:contains_any, _, [field, value]}) do
     build_field_filter(field, "ARRAY_CONTAINS_ANY", value)
   end
 
   defp build_field_filter(field, op, value) do
     quote do
+      maybe_raise_operator_error(unquote(op), unquote(value))
+
       %Filter{
         fieldFilter: %FieldFilter{
           op: unquote(op),
@@ -394,4 +389,10 @@ defmodule PPlusFireStore.Query do
       select(unquote(query), unquote(fields))
     end
   end
+
+  def maybe_raise_operator_error(op, value) when op in ["IN", "NOT_IN"] and not is_list(value) do
+    raise(ArgumentError, "IN operator requires a list as the right side of the expression\n\n")
+  end
+
+  def maybe_raise_operator_error(_, _), do: :ok
 end

@@ -711,17 +711,12 @@ defmodule PPlusFireStore.APITest do
       # an AST and then call the Code.eval_quoted/3 function to execute it.
 
       assert_raise ArgumentError, "IN operator requires a list as the right side of the expression\n\n", fn ->
-        ast =
-          quote do
-            query =
-              "books"
-              |> from()
-              |> where("author" in "John Doe")
+        query =
+          "books"
+          |> from()
+          |> where("author" in "John Doe")
 
-            API.run_query(token, parent, query)
-          end
-
-        Code.eval_quoted(ast, [token: token, parent: @parent], __ENV__)
+        API.run_query(token, @parent, query)
       end
     end
 
@@ -745,17 +740,12 @@ defmodule PPlusFireStore.APITest do
       # an AST and then call the Code.eval_quoted/3 function to execute it.
 
       assert_raise ArgumentError, "IN operator requires a list as the right side of the expression\n\n", fn ->
-        ast =
-          quote do
-            query =
-              "books"
-              |> from()
-              |> where("author" not in "John Doe")
+        query =
+          "books"
+          |> from()
+          |> where("author" not in "John Doe")
 
-            API.run_query(token, parent, query)
-          end
-
-        Code.eval_quoted(ast, [token: token, parent: @parent], __ENV__)
+        API.run_query(token, @parent, query)
       end
     end
 
