@@ -10,7 +10,7 @@ Provides a simple interface to interact with the official Google API [GoogleApi.
 ```elixir
 def deps do
   [
-    {:pplus_firestore, "~> 0.1.5"}
+    {:pplus_firestore, "~> 0.1.6"}
   ]
 end
 ```
