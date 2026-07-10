@@ -52,9 +52,7 @@ defmodule PPlusFireStore.Connection do
   """
   @spec new(String.t() | (list(String.t()) -> String.t())) :: Tesla.Client.t()
   def new(token) when is_binary(token) do
-    Tesla.client(
-      middlewares() ++ [{Tesla.Middleware.Headers, [{"authorization", "Bearer #{token}"}]}]
-    )
+    Tesla.client(middlewares() ++ [{Tesla.Middleware.Headers, [{"authorization", "Bearer #{token}"}]}])
   end
 
   def new(token_fetcher) when is_function(token_fetcher) do
