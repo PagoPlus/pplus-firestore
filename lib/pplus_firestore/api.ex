@@ -2,9 +2,9 @@ defmodule PPlusFireStore.API do
   @moduledoc """
   Module to interact with Google Firestore API
   """
-  alias GoogleApi.Firestore.V1.Api.Projects
   alias GoogleApi.Firestore.V1.Model.RunQueryRequest
   alias GoogleApi.Firestore.V1.Model.StructuredQuery
+  alias PPlusFireStore.API.Projects
   alias PPlusFireStore.Connection
   alias PPlusFireStore.Decoder
   alias PPlusFireStore.Encoder
