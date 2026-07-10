@@ -28,8 +28,6 @@ defmodule PPlusFireStore.Connection do
         decompress_opts: [format: "gzip"]
   """
 
-  use Tesla
-
   @type t :: Tesla.Env.client()
   @scopes [
     "https://www.googleapis.com/auth/cloud-platform",
@@ -103,6 +101,6 @@ defmodule PPlusFireStore.Connection do
   def execute(connection, request) do
     request
     |> GoogleApi.Gax.Connection.build_request()
-    |> then(&request(connection, &1))
+    |> then(&Tesla.request(connection, &1))
   end
 end
