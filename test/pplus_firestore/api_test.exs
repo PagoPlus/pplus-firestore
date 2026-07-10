@@ -3,8 +3,8 @@ defmodule PPlusFireStore.APITest do
 
   import PPlusFireStore.Query
 
-  alias GoogleApi.Firestore.V1.Api.Projects
   alias PPlusFireStore.API
+  alias PPlusFireStore.API.Projects
   alias PPlusFireStore.Connection
   alias PPlusFireStore.Model.Document
   alias PPlusFireStore.Model.Page
