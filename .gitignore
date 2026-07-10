@@ -21,3 +21,6 @@ pplus_firestore-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Dester
+.dexter*
