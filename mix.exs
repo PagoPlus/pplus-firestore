@@ -48,6 +48,7 @@ defmodule PPlusFireStore.MixProject do
     [
       {:google_api_firestore, "~> 0.32"},
       {:goth, "~> 1.4"},
+      {:tesla, "~> 1.2"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.4.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
