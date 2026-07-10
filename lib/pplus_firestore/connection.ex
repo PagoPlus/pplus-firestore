@@ -36,15 +36,6 @@ defmodule PPlusFireStore.Connection do
     "https://www.googleapis.com/auth/datastore"
   ]
 
-  @base_url Application.compile_env(:google_api_firestore, :base_url, "https://firestore.googleapis.com/")
-  @decompress_opts Application.compile_env(:pplus_firestore, [__MODULE__, :decompress_opts],
-                     max_body_size: 32 * 1024 * 1024
-                   )
-
-  plug(Tesla.Middleware.BaseUrl, @base_url)
-  plug(Tesla.Middleware.DecompressResponse, @decompress_opts)
-  plug(Tesla.Middleware.EncodeJson, engine: Poison)
-
   @doc """
   Configure a client connection using a provided OAuth2 token as a Bearer token,
   or a function which yields one.
@@ -61,9 +52,9 @@ defmodule PPlusFireStore.Connection do
   """
   @spec new(String.t() | (list(String.t()) -> String.t())) :: Tesla.Client.t()
   def new(token) when is_binary(token) do
-    Tesla.client([
-      {Tesla.Middleware.Headers, [{"authorization", "Bearer #{token}"}]}
-    ])
+    Tesla.client(
+      middlewares() ++ [{Tesla.Middleware.Headers, [{"authorization", "Bearer #{token}"}]}]
+    )
   end
 
   def new(token_fetcher) when is_function(token_fetcher) do
@@ -81,7 +72,25 @@ defmodule PPlusFireStore.Connection do
   """
   @spec new() :: Tesla.Client.t()
   def new do
-    Tesla.client([])
+    Tesla.client(middlewares())
+  end
+
+  defp middlewares do
+    [
+      {Tesla.Middleware.BaseUrl, base_url()},
+      {Tesla.Middleware.DecompressResponse, decompress_opts()},
+      {Tesla.Middleware.EncodeJson, [engine: Poison]}
+    ]
+  end
+
+  defp base_url do
+    Application.get_env(:google_api_firestore, :base_url, "https://firestore.googleapis.com/")
+  end
+
+  defp decompress_opts do
+    :pplus_firestore
+    |> Application.get_env(__MODULE__, [])
+    |> Keyword.get(:decompress_opts, max_body_size: 32 * 1024 * 1024)
   end
 
   @doc """
